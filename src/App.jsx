@@ -1,15 +1,32 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import StoreLayout from './layouts/StoreLayout'
+import AdminLayout from './layouts/AdminLayout'
+import Home from './pages/Home'
 import ConfirmOrder from './pages/ConfirmOrder'
+import AdminGiftList from './pages/admin/AdminGiftList'
+import AdminGiftEdit from './pages/admin/AdminGiftEdit'
+import AdminProductEdit from './pages/admin/AdminProductEdit'
 
 export default function App() {
   return (
     <Routes>
+      {/* 入口 */}
+      <Route path="/" element={<Home />} />
+
+      {/* 前台 */}
       <Route element={<StoreLayout />}>
         <Route path="/Orders/ConfirmOrder" element={<ConfirmOrder />} />
-        <Route path="/" element={<Navigate to="/Orders/ConfirmOrder" replace />} />
-        <Route path="*" element={<Navigate to="/Orders/ConfirmOrder" replace />} />
       </Route>
+
+      {/* 後台 */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="gifts" element={<AdminGiftList />} />
+        <Route path="gifts/:id" element={<AdminGiftEdit />} />
+        <Route path="products/:id" element={<AdminProductEdit />} />
+      </Route>
+
+      {/* fallback */}
+      <Route path="*" element={<Home />} />
     </Routes>
   )
 }
