@@ -1,0 +1,159 @@
+/* ───── 只放自訂 Header + Footer 樣式，以及補幾個 fruit_web JS 預期的修正 ───── */
+
+body {
+  margin: 0;
+  font-family: Microsoft JhengHei, "微軟正黑體", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* 灰底包著中間區塊（仿線上 .sb-site-container）*/
+.sb-site-container {
+  background-color: #f2f2f2;
+  padding: 20px 0;
+  min-height: 400px;
+}
+
+/* ───── 自訂 header（對齊線上但簡化） ───── */
+.gb-head {
+  position: sticky; top: 0; z-index: 10;
+  background: #fff;
+  border-bottom: 1px solid #efefef;
+  box-shadow: 0 2px 4px rgba(0,0,0,.03);
+}
+.gb-head .top-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px; gap: 14px;
+}
+.gb-head .logo-wrap img { height: 32px; }
+.gb-head .search-box {
+  flex: 0 0 260px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #ccc; border-radius: 18px;
+  font-size: 13px;
+}
+.gb-head .search-box input {
+  border: 0; outline: 0; background: transparent;
+  flex: 1; font-size: 13px;
+}
+.gb-head .member-wrap-link {
+  color: #4ba83b; font-size: 13px; margin: 0 4px;
+  display: inline-flex; align-items: center; gap: 4px;
+  text-decoration: none;
+}
+.gb-head .cart-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 6px 12px; border-radius: 18px;
+  background: #4ba83b; color: #fff; font-size: 13px;
+  position: relative; border: 0; cursor: pointer;
+}
+.gb-head .cart-btn .badge {
+  position: absolute; top: -4px; right: -4px;
+  background: #dc4e43; color: #fff; font-size: 11px;
+  min-width: 18px; height: 18px; border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+.gb-head .nav-row {
+  display: flex; align-items: center; gap: 24px;
+  padding: 8px 20px; font-size: 14px;
+  overflow-x: auto; white-space: nowrap;
+}
+.gb-head .nav-row a { color: #333; padding: 4px 0; text-decoration: none; }
+.gb-head .nav-row a:hover { color: #caa940; }
+.gb-head .new-badge { color: red; margin-right: 4px; font-weight: 700; }
+
+/* ───── 自訂 footer ───── */
+footer.gb-footer {
+  background: #4ba83b; color: #fff;
+  padding: 28px 20px 18px;
+}
+footer.gb-footer .wrap {
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px;
+  font-size: 13px; line-height: 1.9;
+}
+footer.gb-footer h4 { font-size: 15px; font-weight: 700; margin: 0 0 8px; }
+footer.gb-footer a { color: #fff; opacity: .9; display: block; text-decoration: none; }
+footer.gb-footer a:hover { opacity: 1; }
+footer.gb-footer .social a { display: inline-block; margin-right: 10px; font-size: 22px; }
+footer.gb-footer .info { font-size: 12px; opacity: .85; }
+footer.gb-footer .bottom {
+  max-width: 1200px; margin: 20px auto 0;
+  padding-top: 16px; border-top: 1px solid rgba(255,255,255,.2);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; opacity: .8;
+}
+
+/* 讓 fieldset 不擋 Bootstrap .container 置中（只清除 fieldset 預設框線，寬度讓 Bootstrap 規則生效）*/
+.order-form fieldset.container {
+  border: 0;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin: 0 auto;
+  min-width: 0;
+}
+/* 強制套用 Bootstrap 3 桌機 width（有些瀏覽器會因 fieldset default min-width 擋到）*/
+@media (min-width: 1200px) {
+  .order-form fieldset.container { width: 1170px; }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  .order-form fieldset.container { width: 970px; }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  .order-form fieldset.container { width: 750px; }
+}
+
+/* ───── 線上 slick 相關補 ─────
+   原網站 JS 會把 #sa-model-frozen 搬進 #sa-frozen-target，
+   #sa-model-* 預設 opacity:0; position:absolute; z-index:-1（當模板藏起來）
+   這裡在 ConfirmOrder.jsx 的 useEffect 做搬移，然後強制顯示 ───── */
+#sa-model-frozen,
+#sa-model-itemnew,
+#sa-model-box,
+#sa-model-babyfood,
+#sa-model-eaglebabee,
+#sa-model-fastfood,
+#sa-model-special,
+#sa-model-refrigerator {
+  opacity: 1 !important;
+  position: static !important;
+  z-index: auto !important;
+}
+
+/* slick 沒跑 → 用 grid 4 欄靜態呈現，第 5 個以後隱藏
+   加左右 padding 讓內容不貼 panel 邊界（仿線上 slick carousel 的 margin） */
+.sa-pd-slick-frozen,
+.sa-pd-slick {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  column-gap: 15px !important;
+  padding: 0 20px !important;
+  box-sizing: border-box;
+}
+.sa-pd-slick-frozen > .col-xs-12,
+.sa-pd-slick > .col-xs-12 {
+  width: auto !important;
+  padding: 0 10px !important;
+  float: none !important;
+  display: block !important;
+  box-sizing: border-box;
+}
+.sa-pd-slick-frozen > .col-xs-12:nth-child(n+5),
+.sa-pd-slick > .col-xs-12:nth-child(n+5) {
+  display: none !important;
+}
+
+/* #pd-area 裡有 float 元素 → clearfix 避免高度塌陷 */
+#pd-area::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+/* 這些元素線上預設 display:none，React 渲染過程丟失 inline style 時用 css 強制補回 */
+#FrozenActivityDiscountArea,
+#amount_discount,
+#whole_discount,
+#BonusValid,
+#RedPointValid,
+#cart-total_valid-msg { display: none !important; }
