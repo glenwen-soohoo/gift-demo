@@ -6,17 +6,24 @@ import GiftHintRow from './GiftHintRow'
 
 // 一整個分類（冷凍超市 / 粥寶寶 …）：
 // top-field + categorey-title + 溫層分組 + 商品列 + 贈品/提示 + 小計+運費 + 超值加購
+//
+// Props（Phase D 對齊 PascalCase）：
+//   category:       CATEGORIES[Type] 的元素（Title / Icon / SaAreaId …）
+//   items:          CartOrderItem[]（扁平）
+//   saItems:        SA_AREAS[...].Items
+//   triggeredGifts: GiftTriggeredItem[]
+//   hintGifts:      GiftHintItem[]
 export default function OrderCategory({
   category, items, saItems,
-  giftEvals = [],        // 此分類對應的贈品評估結果
+  triggeredGifts = [], hintGifts = [],
   onChangeQty, onDelete, onAddSa, onToggleGift,
 }) {
   // 贈品不算進小計；但 buy_to_get target 算（米餅就是一般商品，要計入小計）
-  const subtotal = items.reduce((s, it) => s + it.price * it.quantity, 0)
+  const subtotal = items.reduce((s, it) => s + it.Price * it.Quantity, 0)
 
-  // 依溫層分組
+  // 依溫層顯示名稱分組
   const groups = items.reduce((acc, it) => {
-    const key = it.temperatureLabel
+    const key = it.TemperatureTypeName
     if (!acc[key]) acc[key] = []
     acc[key].push(it)
     return acc
@@ -25,17 +32,13 @@ export default function OrderCategory({
   const tempKeys = Object.keys(groups)
   const lastTemp = tempKeys[tempKeys.length - 1]
 
-  // 只在最後一個溫層組末尾加贈品/提示列
-  const triggeredGifts = giftEvals.filter(g => g.state === 'triggered')
-  const hintGifts      = giftEvals.filter(g => g.state === 'hint')
-
   return (
     <>
       <TopField />
 
-      <section className="col-xs-12 base-field order-field-basc categorey-title" data-type={category.dataType}>
-        <img src={category.icon} alt="" />
-        <span>{category.title}</span>
+      <section className="col-xs-12 base-field order-field-basc categorey-title" data-type={category.DataType}>
+        <img src={category.Icon} alt="" />
+        <span>{category.Title}</span>
       </section>
 
       {tempKeys.map(tempLabel => (
@@ -58,16 +61,16 @@ export default function OrderCategory({
           {/* 觸發的贈品列 + 提示列 — 掛在最後一個溫層組的最下方 */}
           {tempLabel === lastTemp && (
             <>
-              {triggeredGifts.map(ev => (
+              {triggeredGifts.map(gift => (
                 <CartItemRow
-                  key={`gift-${ev.rule.id}`}
-                  item={{ isGift: true }}
-                  giftEval={ev}
+                  key={`gift-${gift.GiftRuleId}`}
+                  item={{ IsGift: true }}
+                  giftItem={gift}
                   onToggleGift={onToggleGift}
                 />
               ))}
-              {hintGifts.map(ev => (
-                <GiftHintRow key={`hint-${ev.rule.id}`} evaluated={ev} />
+              {hintGifts.map(hint => (
+                <GiftHintRow key={`hint-${hint.GiftRuleId}`} hint={hint} />
               ))}
             </>
           )}
@@ -78,9 +81,9 @@ export default function OrderCategory({
 
       {saItems && saItems.length > 0 && (
         <SAArea
-          saAreaId={category.saAreaId}
+          saAreaId={category.SaAreaId}
           items={saItems}
-          onAdd={(saItem, qty) => onAddSa(category.key, saItem, qty)}
+          onAdd={(saItem, qty) => onAddSa(category.Type, saItem, qty)}
         />
       )}
     </>

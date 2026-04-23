@@ -10,8 +10,8 @@ export default function AdminGiftList() {
   const [stockDraft, setStockDraft] = useState('')
 
   const startStockEdit = (r) => {
-    setEditingStockId(r.id)
-    setStockDraft(String(r.stock ?? 0))
+    setEditingStockId(r.Id)
+    setStockDraft(String(r.Stock ?? 0))
   }
   const commitStock = (id) => {
     const n = Number(stockDraft)
@@ -20,11 +20,11 @@ export default function AdminGiftList() {
   }
   const cancelStockEdit = () => setEditingStockId(null)
 
-  // 輸入中的條件（pending）
+  // 輸入中的條件（pending）— 內部變數名仍保留 camelCase（UI state 非 DTO）
   const [kw, setKw] = useState('')
-  const [pl, setPl] = useState('')
-  const [rt, setRt] = useState('')
-  const [ls, setLs] = useState('')
+  const [pl, setPl] = useState('')     // ProductionLine 整數或 ''
+  const [rt, setRt] = useState('')     // RuleType 字串或 ''
+  const [ls, setLs] = useState('')     // 'on' / 'off' / ''
   // 已套用的條件（applied）— 只有點「查詢」才會更新
   const [applied, setApplied] = useState({ kw: '', pl: '', rt: '', ls: '' })
 
@@ -32,11 +32,11 @@ export default function AdminGiftList() {
 
   const filtered = useMemo(() => rules.filter(r => {
     const { kw, pl, rt, ls } = applied
-    if (kw && !`${r.id} ${r.productId} ${r.productName}`.includes(kw)) return false
-    if (pl && r.productionline !== pl) return false
-    if (rt && r.ruleType !== rt) return false
-    if (ls === 'on' && !r.isListed) return false
-    if (ls === 'off' && r.isListed) return false
+    if (kw && !`${r.Id} ${r.ProductId} ${r.ProductName}`.includes(kw)) return false
+    if (pl !== '' && r.ProductionLine !== pl) return false
+    if (rt && r.RuleType !== rt) return false
+    if (ls === 'on' && !r.IsListed) return false
+    if (ls === 'off' && r.IsListed) return false
     return true
   }), [rules, applied])
 
@@ -48,7 +48,6 @@ export default function AdminGiftList() {
       setConfirmId(null)
     } else {
       setConfirmId(id)
-      // 5 秒後自動取消確認狀態
       setTimeout(() => setConfirmId(cur => cur === id ? null : cur), 5000)
     }
   }
@@ -75,7 +74,7 @@ export default function AdminGiftList() {
             <div className="radio-group">
               <Radio checked={pl === ''} onChange={() => setPl('')} label="All" />
               {PRODUCTION_LINES.map(p => (
-                <Radio key={p.value} checked={pl === p.value} onChange={() => setPl(p.value)} label={p.label} />
+                <Radio key={p.Value} checked={pl === p.Value} onChange={() => setPl(p.Value)} label={p.Label} />
               ))}
             </div>
           </div>
@@ -83,8 +82,8 @@ export default function AdminGiftList() {
             <label>贈送條件</label>
             <div className="radio-group">
               <Radio checked={rt === ''} onChange={() => setRt('')} label="All" />
-              <Radio checked={rt === 'threshold'} onChange={() => setRt('threshold')} label="滿額贈" />
-              <Radio checked={rt === 'buy_to_get'} onChange={() => setRt('buy_to_get')} label="買就送" />
+              <Radio checked={rt === 'Threshold'} onChange={() => setRt('Threshold')} label="滿額贈" />
+              <Radio checked={rt === 'BuyToGet'} onChange={() => setRt('BuyToGet')} label="買就送" />
             </div>
           </div>
           <div className="form-row">
@@ -123,33 +122,35 @@ export default function AdminGiftList() {
           </thead>
           <tbody>
             {filtered.map(r => {
-              const pl = PRODUCTION_LINES.find(x => x.value === r.productionline)
-              const temp = TEMPERATURES.find(x => x.value === r.temperature)
-              const isConfirming = confirmId === r.id
+              const pl = PRODUCTION_LINES.find(x => x.Value === r.ProductionLine)
+              const temp = TEMPERATURES.find(x => x.Value === r.TemperatureLayer)
+              const isConfirming = confirmId === r.Id
               return (
-                <tr key={r.id}>
+                <tr key={r.Id}>
                   <td className="cell-id">
-                    <div>{r.productId}</div>
-                    <div className="cell-id-sub">{r.id}</div>
+                    <div>{r.ProductId}</div>
+                    <div className="cell-id-sub">{r.Id}</div>
                   </td>
                   <td>
-                    <img src={r.image} alt="" className="gift-thumb" />
+                    <img src={r.Pic} alt="" className="gift-thumb" />
                   </td>
-                  <td className="cell-name">{r.productName}</td>
-                  <td>{r.productSpec}</td>
+                  <td className="cell-name">{r.ProductName}</td>
+                  <td>{r.ProductSpec}</td>
                   <td className="cell-center">
                     <Switch
                       size="sm"
-                      checked={!!r.isListed}
-                      onChange={() => toggleListed(r.id)}
+                      checked={!!r.IsListed}
+                      onChange={() => toggleListed(r.Id)}
                     />
                   </td>
                   <td className="cell-cond">{renderCondition(r)}</td>
                   <td className="cell-center">
-                    {r.repeatable ? <span style={{ color: '#22c55e', fontWeight: 600 }}>是</span> : <span style={{ color: '#999' }}>否</span>}
+                    {r.Repeatable
+                      ? <span style={{ color: '#22c55e', fontWeight: 600 }}>是</span>
+                      : <span style={{ color: '#999' }}>否</span>}
                   </td>
-                  <td className={`cell-center ${r.stock === 0 && editingStockId !== r.id ? 'stock-zero' : ''}`}>
-                    {editingStockId === r.id ? (
+                  <td className={`cell-center ${r.Stock === 0 && editingStockId !== r.Id ? 'stock-zero' : ''}`}>
+                    {editingStockId === r.Id ? (
                       <div className="stock-edit-stack">
                         <input
                           type="number"
@@ -158,7 +159,7 @@ export default function AdminGiftList() {
                           autoFocus
                           onChange={e => setStockDraft(e.target.value)}
                           onKeyDown={e => {
-                            if (e.key === 'Enter') commitStock(r.id)
+                            if (e.key === 'Enter') commitStock(r.Id)
                             else if (e.key === 'Escape') cancelStockEdit()
                           }}
                         />
@@ -166,7 +167,7 @@ export default function AdminGiftList() {
                           <button
                             type="button"
                             className="icon-btn-confirm"
-                            onClick={() => commitStock(r.id)}
+                            onClick={() => commitStock(r.Id)}
                             title="儲存"
                           >
                             <i className="fa fa-check" aria-hidden="true" />
@@ -183,7 +184,7 @@ export default function AdminGiftList() {
                       </div>
                     ) : (
                       <div className="stock-display-stack">
-                        <span>{r.stock === 0 ? <>❌&nbsp;0</> : r.stock}</span>
+                        <span>{r.Stock === 0 ? <>❌&nbsp;0</> : r.Stock}</span>
                         <button
                           type="button"
                           className="icon-btn-pencil"
@@ -196,20 +197,22 @@ export default function AdminGiftList() {
                     )}
                   </td>
                   <td className="cell-pl-temp">
-                    <div>{pl?.label}</div>
-                    <div className="cell-sub">{temp?.label}</div>
+                    <div>{pl?.Label}</div>
+                    <div className="cell-sub">{temp?.Label}</div>
                   </td>
                   <td>
-                    {(r.membershipLimit ?? []).length === 0
+                    {(r.MembershipLimits ?? []).length === 0
                       ? '無'
-                      : r.membershipLimit.map(m => <div key={m}>{m}</div>)}
+                      : r.MembershipLimits.map(m => (
+                          <div key={m}>{m === 'FirstOrder' ? '首購' : m}</div>
+                        ))}
                   </td>
                   <td className="cell-ops">
-                    <Link to={`/admin/gifts/${r.id}`} className="btn-op">編輯</Link>
+                    <Link to={`/admin/gifts/${r.Id}`} className="btn-op">編輯</Link>
                     <button
                       type="button"
                       className={`btn-op ${isConfirming ? 'btn-danger-confirm' : ''}`}
-                      onClick={() => handleDeleteClick(r.id)}
+                      onClick={() => handleDeleteClick(r.Id)}
                     >
                       {isConfirming ? '確定刪除' : '刪除'}
                     </button>
@@ -228,23 +231,24 @@ export default function AdminGiftList() {
 }
 
 function renderCondition(r) {
-  if (!r.ruleType) {
+  if (!r.RuleType) {
     return <span className="cond-unset">未設定</span>
   }
-  if (r.ruleType === 'threshold') {
+  if (r.RuleType === 'Threshold') {
+    const pl = PRODUCTION_LINES.find(x => x.Value === r.ProductionLine)
     return (
       <>
         <div><strong>滿額贈</strong></div>
-        <div>{PRODUCTION_LINES.find(x => x.value === r.productionline)?.label} &gt; {r.thresholdAmount}元</div>
-        <div>送 {r.giftQuantity} 個</div>
+        <div>{pl?.Label} &gt; {r.ThresholdAmount}元</div>
+        <div>送 {r.GiftQuantity} 個</div>
       </>
     )
   }
   return (
     <>
       <div><strong>買就送</strong></div>
-      <div>指定商品 &gt; {r.thresholdQuantity} 個</div>
-      <div>送 {r.giftQuantity} 個</div>
+      <div>指定商品 &gt; {r.ThresholdQuantity} 個</div>
+      <div>送 {r.GiftQuantity} 個</div>
     </>
   )
 }

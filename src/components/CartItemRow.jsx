@@ -2,13 +2,17 @@ import { useState } from 'react'
 import GiftInfoModal from './GiftInfoModal'
 
 // 單一購物車商品列 — 支援兩種模式：一般商品 / 贈品
-export default function CartItemRow({ item, onChangeQty, onDelete, giftEval, onToggleGift }) {
+//
+// 贈品模式：
+//   item = { IsGift: true }  （flag）
+//   giftItem = GiftTriggeredItem（從 CartGiftResult.Triggered 拿）
+export default function CartItemRow({ item, onChangeQty, onDelete, giftItem, onToggleGift }) {
   const [giftModal, setGiftModal] = useState(false)
 
-  if (item.isGift) {
+  if (item.IsGift) {
     return (
       <GiftRow
-        giftEval={giftEval}
+        giftItem={giftItem}
         onToggleGift={onToggleGift}
         giftModal={giftModal}
         setGiftModal={setGiftModal}
@@ -19,59 +23,59 @@ export default function CartItemRow({ item, onChangeQty, onDelete, giftEval, onT
   return (
     <section
       className="col-xs-12 order-field-basc cartItem-area pd-mark"
-      data-pid={item.pid}
-      data-pdid={item.pdid}
-      data-name={item.name}
-      data-price={item.price}
-      data-variant={item.spec}
+      data-pid={item.ProductId}
+      data-pdid={item.ProductDetailId}
+      data-name={item.ProductName}
+      data-price={item.Price}
+      data-variant={item.ProductSpec}
     >
       <div className="base-field field-pd col-xs-4">
         <div id="pd-img-fillPaymentInfo" className="col-xs-4 p-0">
-          <img src={item.image} alt={item.name} />
+          <img src={item.Pic} alt={item.ProductName} />
         </div>
         <div className="col-xs-8 pd-descs">
           <div className="pd-title">
-            {item.name}
-            {item.nameWarning && (
+            {item.ProductName}
+            {item.NameWarning && (
               <>
                 <br />
-                <span style={{ color: 'red', fontSize: '10pt' }}>{item.nameWarning}</span>
+                <span style={{ color: 'red', fontSize: '10pt' }}>{item.NameWarning}</span>
               </>
             )}
           </div>
           <div className="pd-spec">
-            規格:{item.spec}
-            {item.specSuffix && <span> {item.specSuffix}</span>}
+            規格:{item.ProductSpec}
+            {item.SpecSuffix && <span> {item.SpecSuffix}</span>}
           </div>
         </div>
       </div>
 
       <div className="base-field field-order-time col-xs-2">
-        <span>{item.deliveryTime}</span>
+        <span>{item.DeliveryTime}</span>
       </div>
 
       <div className="base-field field-price col-xs-1">
-        ${item.price}
+        ${item.Price}
       </div>
 
       <div className="base-field field-amt col-xs-2">
         <select
-          id={`paymentproductid-${item.pid}-${item.pdid}`}
-          className={`form-control paymentproductid-${item.pid}`}
-          value={item.quantity}
+          id={`paymentproductid-${item.ProductId}-${item.ProductDetailId}`}
+          className={`form-control paymentproductid-${item.ProductId}`}
+          value={item.Quantity}
           onChange={e => onChangeQty(item.uid, Number(e.target.value))}
           style={{ width: 65, margin: 'auto', textAlign: 'center', display: 'inline' }}
         >
-          {Array.from({ length: Math.min(item.maxQty ?? 12, 12) }, (_, i) => (
+          {Array.from({ length: Math.min(item.MaxQty ?? 12, 12) }, (_, i) => (
             <option key={i + 1} value={i + 1}>{i + 1}</option>
           ))}
         </select>
-        <div className="amt-alert">剩餘 {item.maxQty} 組</div>
+        <div className="amt-alert">剩餘 {item.MaxQty} 組</div>
       </div>
 
       <div className="base-field field-pd-total col-xs-2">
         <div className="order-p-unit order-content-price" style={{ textDecoration: 'none' }}>
-          ${item.price * item.quantity}
+          ${item.Price * item.Quantity}
         </div>
       </div>
 
@@ -90,42 +94,46 @@ export default function CartItemRow({ item, onChangeQty, onDelete, giftEval, onT
   )
 }
 
-// ─── 贈品列 ───
-function GiftRow({ giftEval, onToggleGift, giftModal, setGiftModal }) {
-  const { rule, declined, qty: evalQty, multiplier } = giftEval
-  const gift = rule.gift
-  const qty = evalQty ?? gift.quantity
+// ─── 贈品列（讀取 GiftTriggeredItem）───────────────
+function GiftRow({ giftItem, onToggleGift, giftModal, setGiftModal }) {
+  if (!giftItem) return null
+  const {
+    GiftRuleId, ProductId, ProductDetailId, ProductName, ProductSpec, SpecSuffix,
+    Pic, DeliveryTime, GiftType, Quantity, IsDeclined,
+  } = giftItem
+
+  const tagLabel = GiftType === 'Threshold' ? '滿額贈' : '買就送'
+  const giftTypeClass = GiftType === 'Threshold' ? 'threshold' : 'buy_to_get'
+  const displayQty = IsDeclined ? 0 : Quantity
 
   return (
     <>
       <section
-        className={`col-xs-12 order-field-basc cartItem-area gift-row ${rule.giftType} ${declined ? 'declined' : ''}`}
-        data-pid={gift.pid}
-        data-pdid={gift.pdid}
+        className={`col-xs-12 order-field-basc cartItem-area gift-row ${giftTypeClass} ${IsDeclined ? 'declined' : ''}`}
+        data-pid={ProductId}
+        data-pdid={ProductDetailId}
       >
         <div className="base-field field-pd col-xs-4">
           <div id="pd-img-fillPaymentInfo" className="col-xs-4 p-0">
-            <img src={gift.image} alt={gift.name} />
+            <img src={Pic} alt={ProductName} />
           </div>
           <div className="col-xs-8 pd-descs">
             <div className="gift-tags">
-              <span className={`gift-tag ${rule.giftType}`}>
-                {rule.giftType === 'threshold' ? '滿額贈' : '買就送'}
-              </span>
+              <span className={`gift-tag ${giftTypeClass}`}>{tagLabel}</span>
               <button type="button" className="gift-info-btn" onClick={() => setGiftModal(true)}>
                 活動說明
               </button>
             </div>
-            <div className="pd-title">{gift.name}</div>
+            <div className="pd-title">{ProductName}</div>
             <div className="pd-spec">
-              規格:{gift.spec}
-              {gift.specSuffix && <span> {gift.specSuffix}</span>}
+              規格:{ProductSpec}
+              {SpecSuffix && <span> {SpecSuffix}</span>}
             </div>
           </div>
         </div>
 
         <div className="base-field field-order-time col-xs-2">
-          <span>{gift.deliveryTime}</span>
+          <span>{DeliveryTime}</span>
         </div>
 
         <div className="base-field field-price col-xs-1 gift-price">
@@ -133,7 +141,7 @@ function GiftRow({ giftEval, onToggleGift, giftModal, setGiftModal }) {
         </div>
 
         <div className="base-field field-amt col-xs-2">
-          <div className="gift-qty">{declined ? 0 : qty}</div>
+          <div className="gift-qty">{displayQty}</div>
         </div>
 
         <div className="base-field field-pd-total col-xs-2">
@@ -145,16 +153,16 @@ function GiftRow({ giftEval, onToggleGift, giftModal, setGiftModal }) {
         <div className="base-field field-delete col-xs-1">
           <button
             type="button"
-            className={`gift-toggle-btn ${declined ? 'restore' : 'decline'}`}
-            onClick={() => onToggleGift?.(rule.id)}
-            title={declined ? '加回贈品' : '不要贈品'}
+            className={`gift-toggle-btn ${IsDeclined ? 'restore' : 'decline'}`}
+            onClick={() => onToggleGift?.(GiftRuleId)}
+            title={IsDeclined ? '加回贈品' : '不要贈品'}
           >
-            {declined ? '加回贈品' : '不要贈品'}
+            {IsDeclined ? '加回贈品' : '不要贈品'}
           </button>
         </div>
       </section>
 
-      <GiftInfoModal open={giftModal} onClose={() => setGiftModal(false)} rule={rule} />
+      <GiftInfoModal open={giftModal} onClose={() => setGiftModal(false)} giftItem={giftItem} />
     </>
   )
 }

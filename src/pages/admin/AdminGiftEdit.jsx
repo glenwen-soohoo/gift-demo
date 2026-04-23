@@ -3,31 +3,36 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useGiftRules } from '../../context/GiftRulesContext'
 import Switch from '../../components/Switch'
 import {
-  PRODUCTION_LINES, TEMPERATURES, RULE_TYPE,
+  PRODUCTION_LINES, TEMPERATURES, RULE_TYPE, GIFT_RULE_STATE,
   TARGET_PRODUCT_NAMES, TARGET_SPEC_NAMES,
 } from '../../data/giftRules'
+import { ProductCategoryEnum, TemperatureLayer } from '../../data/fakeData'
 
+// form state 對齊 GiftRuleEditViewModel（fruit_web 未來接收的 ViewModel）
 const EMPTY_RULE = {
-  productId: '',
-  productName: '',
-  productSpec: '1個(贈品)',
-  image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
-  ruleType: 'threshold',
-  productionline: 'babyfood',
-  temperature: 'frozen',
-  thresholdAmount: '',
-  hintAmount: '',
-  thresholdQuantity: '',
-  useProductIds: true,
-  useSpecIds: false,
-  targetProductIds: [],
-  targetSpecIds: [],
-  giftQuantity: 1,
-  repeatable: false,   // 可重複贈送，預設否
-  popupText: '',
-  stock: 0,
-  isListed: true,
-  membershipLimit: [],
+  ProductId: '',
+  ProductName: '',
+  ProductSpec: '1 個',
+  SpecSuffix: '(贈品)',
+  Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
+  DeliveryTime: '',
+  RuleType: 'Threshold',
+  ProductionLine: ProductCategoryEnum.粥寶寶專區,
+  TemperatureLayer: TemperatureLayer.冷凍,
+  ThresholdAmount: '',
+  HintAmount: '',
+  ThresholdQuantity: '',
+  UseProductIds: true,
+  UseSpecIds: false,
+  TargetProductIds: [],
+  TargetSpecIds: [],
+  GiftQuantity: 1,
+  Repeatable: false,
+  PopupText: '',
+  Stock: 0,
+  IsListed: true,
+  MembershipLimits: [],
+  State: GIFT_RULE_STATE.上架中,
 }
 
 export default function AdminGiftEdit() {
@@ -43,39 +48,36 @@ export default function AdminGiftEdit() {
   const [editingStock, setEditingStock] = useState(false)
   const [stockDraft, setStockDraft] = useState('')
 
-  // 點鉛筆：從 form 帶出當前值當草稿
   const startStockEdit = () => {
-    setStockDraft(String(form.stock ?? 0))
+    setStockDraft(String(form.Stock ?? 0))
     setEditingStock(true)
   }
-  // 點 ✓：直接寫入 context（新贈品則只更新 form，等建立時一起 addRule）
   const commitStock = () => {
     const n = Number(stockDraft)
     if (Number.isNaN(n) || n < 0) { setEditingStock(false); return }
     if (!isNew) updateStock(Number(id), n)
-    setForm(prev => ({ ...prev, stock: n }))
+    setForm(prev => ({ ...prev, Stock: n }))
     setEditingStock(false)
   }
   const cancelStockEdit = () => setEditingStock(false)
 
   useEffect(() => {
     if (isNew) return
-    const found = rules.find(r => String(r.id) === id)
+    const found = rules.find(r => String(r.Id) === id)
     if (found) {
-      // 若 ruleType 尚未設定（從產品規格勾選贈品建立出來的），預設走「滿額贈」tab
-      setForm({ ...EMPTY_RULE, ...found, ruleType: found.ruleType || 'threshold' })
-      setProductIdsText((found.targetProductIds ?? []).join(', '))
-      setSpecIdsText((found.targetSpecIds ?? []).join(', '))
+      // 若 RuleType 尚未設定（從產品規格勾選贈品建立出來的 draft），預設走「滿額贈」tab
+      setForm({ ...EMPTY_RULE, ...found, RuleType: found.RuleType || 'Threshold' })
+      setProductIdsText((found.TargetProductIds ?? []).join(', '))
+      setSpecIdsText((found.TargetSpecIds ?? []).join(', '))
     }
-    // 只在進入頁面 / 切換 id 時初始化 form；後續 rules 變動（如 Switch 直接改動 isListed）
-    // 不再覆蓋 form，避免編輯中的其他欄位被重設
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isNew])
 
-  // 上下架 Switch：直接切換 context 的 isListed（即時生效），同時同步 form 狀態
+  // 上下架 Switch：直接切換 context 的 IsListed（即時生效），同時同步 form 狀態
   const handleToggleListed = (next) => {
     if (!isNew) toggleListed(Number(id))
-    update('isListed', next)
+    update('IsListed', next)
+    update('State', next ? GIFT_RULE_STATE.上架中 : GIFT_RULE_STATE.下架)
   }
 
   const update = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
@@ -90,8 +92,8 @@ export default function AdminGiftEdit() {
   const handleSave = () => {
     const payload = {
       ...form,
-      targetProductIds: form.useProductIds ? parseIds(productIdsText) : [],
-      targetSpecIds:    form.useSpecIds    ? parseIds(specIdsText)    : [],
+      TargetProductIds: form.UseProductIds ? parseIds(productIdsText) : [],
+      TargetSpecIds:    form.UseSpecIds    ? parseIds(specIdsText)    : [],
     }
     if (isNew) {
       addRule(payload)
@@ -101,8 +103,8 @@ export default function AdminGiftEdit() {
     nav('/admin/gifts')
   }
 
-  const pl = PRODUCTION_LINES.find(p => p.value === form.productionline)
-  const temp = TEMPERATURES.find(t => t.value === form.temperature)
+  const pl = PRODUCTION_LINES.find(p => p.Value === form.ProductionLine)
+  const temp = TEMPERATURES.find(t => t.Value === form.TemperatureLayer)
 
   return (
     <div className="admin-gift-edit">
@@ -114,13 +116,13 @@ export default function AdminGiftEdit() {
           <section className="gift-info-box">
             <h4>贈品資訊</h4>
             <div className="gift-info-row">
-              <img src={form.image} alt="" className="gift-info-thumb" />
+              <img src={form.Pic} alt="" className="gift-info-thumb" />
               <div className="gift-info-cols gift-info-cols-2">
                 <div className="gift-info-col">
-                  <InfoPair label="產品ID"  value={form.productId || '(尚未綁定)'} />
-                  <InfoPair label="名稱"    value={form.productName || '(新贈品)'} />
+                  <InfoPair label="產品ID"  value={form.ProductId || '(尚未綁定)'} />
+                  <InfoPair label="名稱"    value={form.ProductName || '(新贈品)'} />
                   <InfoPair label="規格ID"  value={isNew ? '(建立後產生)' : (id ?? '')} />
-                  <InfoPair label="規格"    value={form.productSpec} />
+                  <InfoPair label="規格"    value={form.ProductSpec} />
                 </div>
                 <div className="gift-info-col">
                   <div className="info-pair">
@@ -158,7 +160,7 @@ export default function AdminGiftEdit() {
                         </span>
                       ) : (
                         <span className="stock-cell">
-                          <span>{form.stock}</span>
+                          <span>{form.Stock}</span>
                           <button
                             type="button"
                             className="icon-btn-pencil"
@@ -175,18 +177,20 @@ export default function AdminGiftEdit() {
                     <span className="info-label">上架狀態：</span>
                     <span className="info-value">
                       <Switch
-                        checked={!!form.isListed}
+                        checked={!!form.IsListed}
                         onChange={handleToggleListed}
                       />
                       <span className="switch-label-inline">
-                        {form.isListed ? '上架中' : '已下架'}
+                        {form.IsListed ? '上架中' : '已下架'}
                       </span>
                     </span>
                   </div>
-                  <InfoPair label="產線"       value={pl?.label} />
-                  <InfoPair label="溫層"       value={temp?.label} />
+                  <InfoPair label="產線"       value={pl?.Label} />
+                  <InfoPair label="溫層"       value={temp?.Label} />
                   <InfoPair label="限購規則"
-                    value={(form.membershipLimit ?? []).length === 0 ? '無' : form.membershipLimit.join('、')}
+                    value={(form.MembershipLimits ?? []).length === 0
+                      ? '無'
+                      : form.MembershipLimits.map(m => m === 'FirstOrder' ? '首購' : m).join('、')}
                   />
                 </div>
               </div>
@@ -202,29 +206,29 @@ export default function AdminGiftEdit() {
               <div className="tab-group">
                 {Object.values(RULE_TYPE).map(t => (
                   <button
-                    key={t.value}
+                    key={t.Value}
                     type="button"
-                    className={`tab-btn ${form.ruleType === t.value ? 'active' : ''}`}
-                    onClick={() => update('ruleType', t.value)}
-                  >{t.label}</button>
+                    className={`tab-btn ${form.RuleType === t.Value ? 'active' : ''}`}
+                    onClick={() => update('RuleType', t.Value)}
+                  >{t.Label}</button>
                 ))}
               </div>
               <span className="hint">
-                {form.ruleType === 'threshold'
+                {form.RuleType === 'Threshold'
                   ? '與贈品同產線、同溫層購買達到指定金額門檻，即可獲得贈品。'
                   : '購買指定的商品達到指定數量，即可獲得贈品。'}
               </span>
             </div>
 
-            {form.ruleType === 'threshold' ? (
+            {form.RuleType === 'Threshold' ? (
               <>
                 <div className="form-row">
                   <label>贈送金額門檻：</label>
                   <input
                     type="number" className="form-input"
                     placeholder="請輸入贈送門檻的金額"
-                    value={form.thresholdAmount}
-                    onChange={e => update('thresholdAmount', Number(e.target.value))}
+                    value={form.ThresholdAmount}
+                    onChange={e => update('ThresholdAmount', Number(e.target.value))}
                   />
                 </div>
                 <div className="form-row">
@@ -232,8 +236,8 @@ export default function AdminGiftEdit() {
                   <input
                     type="number" className="form-input"
                     placeholder="請輸入達多少金額顯示提示"
-                    value={form.hintAmount}
-                    onChange={e => update('hintAmount', Number(e.target.value))}
+                    value={form.HintAmount}
+                    onChange={e => update('HintAmount', Number(e.target.value))}
                   />
                 </div>
               </>
@@ -246,8 +250,8 @@ export default function AdminGiftEdit() {
                       <label className="checkbox target-check">
                         <input
                           type="checkbox"
-                          checked={form.useProductIds}
-                          onChange={e => update('useProductIds', e.target.checked)}
+                          checked={form.UseProductIds}
+                          onChange={e => update('UseProductIds', e.target.checked)}
                         />
                         <span>用產品 ID</span>
                       </label>
@@ -257,21 +261,21 @@ export default function AdminGiftEdit() {
                         placeholder="75766, 75765"
                         value={productIdsText}
                         onChange={e => setProductIdsText(e.target.value)}
-                        disabled={!form.useProductIds}
+                        disabled={!form.UseProductIds}
                       />
                       <button
                         type="button"
                         className="btn-secondary"
                         onClick={() => setPreview('product')}
-                        disabled={!form.useProductIds}
+                        disabled={!form.UseProductIds}
                       >查看指定產品名稱</button>
                     </div>
                     <div className="target-line">
                       <label className="checkbox target-check">
                         <input
                           type="checkbox"
-                          checked={form.useSpecIds}
-                          onChange={e => update('useSpecIds', e.target.checked)}
+                          checked={form.UseSpecIds}
+                          onChange={e => update('UseSpecIds', e.target.checked)}
                         />
                         <span>用規格 ID</span>
                       </label>
@@ -281,13 +285,13 @@ export default function AdminGiftEdit() {
                         placeholder="123459, 123464, 123465"
                         value={specIdsText}
                         onChange={e => setSpecIdsText(e.target.value)}
-                        disabled={!form.useSpecIds}
+                        disabled={!form.UseSpecIds}
                       />
                       <button
                         type="button"
                         className="btn-secondary"
                         onClick={() => setPreview('spec')}
-                        disabled={!form.useSpecIds}
+                        disabled={!form.UseSpecIds}
                       >查看指定規格名稱</button>
                     </div>
                     <ul className="target-hints">
@@ -302,8 +306,8 @@ export default function AdminGiftEdit() {
                   <input
                     type="number" className="form-input"
                     placeholder="達幾件可獲贈"
-                    value={form.thresholdQuantity}
-                    onChange={e => update('thresholdQuantity', Number(e.target.value))}
+                    value={form.ThresholdQuantity}
+                    onChange={e => update('ThresholdQuantity', Number(e.target.value))}
                   />
                 </div>
               </>
@@ -314,8 +318,8 @@ export default function AdminGiftEdit() {
               <input
                 type="number" className="form-input"
                 placeholder="請輸入贈送的數量"
-                value={form.giftQuantity}
-                onChange={e => update('giftQuantity', Number(e.target.value))}
+                value={form.GiftQuantity}
+                onChange={e => update('GiftQuantity', Number(e.target.value))}
               />
             </div>
 
@@ -325,22 +329,22 @@ export default function AdminGiftEdit() {
                 <label className="radio">
                   <input
                     type="radio"
-                    checked={form.repeatable === false}
-                    onChange={() => update('repeatable', false)}
+                    checked={form.Repeatable === false}
+                    onChange={() => update('Repeatable', false)}
                   />
                   <span>否</span>
                 </label>
                 <label className="radio">
                   <input
                     type="radio"
-                    checked={form.repeatable === true}
-                    onChange={() => update('repeatable', true)}
+                    checked={form.Repeatable === true}
+                    onChange={() => update('Repeatable', true)}
                   />
                   <span>是</span>
                 </label>
               </div>
               <span className="hint">
-                {form.ruleType === 'threshold'
+                {form.RuleType === 'Threshold'
                   ? '例如設定「滿 $1000 送 1 個」，選「是」則滿 $2000 送 2 個、$3000 送 3 個，以此類推。'
                   : '例如設定「買 3 件送 1 個」，選「是」則買 6 件送 2 個、9 件送 3 個，以此類推。'}
               </span>
@@ -352,8 +356,8 @@ export default function AdminGiftEdit() {
                 className="form-input"
                 placeholder="請輸入會顯示在前台頁面的說明文字"
                 rows={3}
-                value={form.popupText}
-                onChange={e => update('popupText', e.target.value)}
+                value={form.PopupText}
+                onChange={e => update('PopupText', e.target.value)}
                 style={{ width: 360 }}
               />
             </div>
@@ -364,8 +368,8 @@ export default function AdminGiftEdit() {
                   <label>贈品名稱：</label>
                   <input
                     type="text" className="form-input"
-                    value={form.productName}
-                    onChange={e => update('productName', e.target.value)}
+                    value={form.ProductName}
+                    onChange={e => update('ProductName', e.target.value)}
                     placeholder="請輸入贈品名稱"
                     style={{ width: 320 }}
                   />
@@ -374,8 +378,8 @@ export default function AdminGiftEdit() {
                   <label>產品 ID：</label>
                   <input
                     type="number" className="form-input"
-                    value={form.productId}
-                    onChange={e => update('productId', Number(e.target.value))}
+                    value={form.ProductId}
+                    onChange={e => update('ProductId', Number(e.target.value))}
                     placeholder="贈品所屬的產品 ID"
                   />
                 </div>
@@ -383,28 +387,28 @@ export default function AdminGiftEdit() {
                   <label>庫存：</label>
                   <input
                     type="number" className="form-input"
-                    value={form.stock}
-                    onChange={e => update('stock', Number(e.target.value))}
+                    value={form.Stock}
+                    onChange={e => update('Stock', Number(e.target.value))}
                   />
                 </div>
                 <div className="form-row">
                   <label>產線：</label>
                   <select
                     className="form-input"
-                    value={form.productionline}
-                    onChange={e => update('productionline', e.target.value)}
+                    value={form.ProductionLine}
+                    onChange={e => update('ProductionLine', Number(e.target.value))}
                   >
-                    {PRODUCTION_LINES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                    {PRODUCTION_LINES.map(p => <option key={p.Value} value={p.Value}>{p.Label}</option>)}
                   </select>
                 </div>
                 <div className="form-row">
                   <label>溫層：</label>
                   <select
                     className="form-input"
-                    value={form.temperature}
-                    onChange={e => update('temperature', e.target.value)}
+                    value={form.TemperatureLayer}
+                    onChange={e => update('TemperatureLayer', Number(e.target.value))}
                   >
-                    {TEMPERATURES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    {TEMPERATURES.map(t => <option key={t.Value} value={t.Value}>{t.Label}</option>)}
                   </select>
                 </div>
               </>
@@ -412,8 +416,8 @@ export default function AdminGiftEdit() {
 
             <div className="form-actions-bar">
               <div className="time-info">
-                <span>建立時間：{form.createTime || '—'} {form.createUser || ''}</span>
-                <span>更新時間：{form.updateTime || '—'}</span>
+                <span>建立時間：{form.CreateTime || '—'} {form.CreateUser || ''}</span>
+                <span>更新時間：{form.UpdateTime || '—'}</span>
               </div>
               <div className="action-buttons">
                 <button type="button" className="btn-secondary" onClick={() => nav('/admin/gifts')}>取消</button>
@@ -458,8 +462,8 @@ export default function AdminGiftEdit() {
                       return (
                         <tr key={sid}>
                           <td>{sid}</td>
-                          <td>{info?.productName ?? <span style={{ color: '#dc4e43' }}>找不到此規格</span>}</td>
-                          <td>{info?.spec ?? '—'}</td>
+                          <td>{info?.ProductName ?? <span style={{ color: '#dc4e43' }}>找不到此規格</span>}</td>
+                          <td>{info?.Spec ?? '—'}</td>
                         </tr>
                       )
                     })}

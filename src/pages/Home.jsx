@@ -1,7 +1,15 @@
 import { Link } from 'react-router-dom'
+import { useGiftRules } from '../context/GiftRulesContext'
+import { GIFT_RULE_STATE } from '../data/giftRules'
+import CartSidebarGiftNotice from '../components/CartSidebarGiftNotice'
 
 // Demo 入口：選前台或後台
 export default function Home() {
+  const { rules } = useGiftRules()
+
+  // 對齊 fruit_web 的 `HasActiveGiftRules` 旗標（單純判斷有無上架中規則）
+  const hasActiveGiftRules = rules.some(r => r.State === GIFT_RULE_STATE.上架中)
+
   return (
     <div className="home-page">
       <div className="home-wrap">
@@ -43,9 +51,32 @@ export default function Home() {
           </Link>
         </div>
 
+        {/* 4.5 決策示範：側欄 mini cart 的提示文字 */}
+        <div className="home-sidebar-demo">
+          <div className="home-sidebar-demo-title">
+            🛒 側欄購物車提示（示範）
+            <span className="home-sidebar-demo-sub">
+              （對齊 [重構計畫 §4.5]：側欄不計算贈品，由結帳頁觸發）
+            </span>
+          </div>
+          <div className="home-sidebar-mock">
+            <div className="home-sidebar-mock-items">
+              <div className="home-sidebar-mock-item">商品 A × 1</div>
+              <div className="home-sidebar-mock-item">商品 B × 2</div>
+              <div className="home-sidebar-mock-item">商品 C × 1</div>
+            </div>
+            <CartSidebarGiftNotice hasActiveGiftRules={hasActiveGiftRules} />
+          </div>
+          <div className="home-sidebar-demo-note">
+            {hasActiveGiftRules
+              ? '↑ 目前 context 有上架中的贈品規則，提示文字顯示'
+              : '↑ 目前沒有任何上架中的贈品規則，提示文字隱藏'}
+          </div>
+        </div>
+
         <div className="home-notes">
           <strong>Demo 說明：</strong>
-          所有資料存 localStorage，重整瀏覽器不會消失；若要重置，請到 DevTools Application 清除 <code>gift-demo:*</code> keys。
+          所有資料存 localStorage（v2 = PascalCase 對齊 fruit_web），重整瀏覽器不會消失；若要重置，請到 DevTools Application 清除 <code>gift-demo:*</code> keys。
         </div>
       </div>
     </div>

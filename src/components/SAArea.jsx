@@ -16,7 +16,7 @@ export default function SAArea({ saAreaId, items, onAdd }) {
           <div className="col-xs-12 p-0 sa-pd-slick-frozen">
             {items.map(it => (
               <SAItem
-                key={`${it.pid}-${it.pdid}`}
+                key={`${it.ProductId}-${it.ProductDetailId}`}
                 item={it}
                 onAdd={onAdd}
               />

@@ -4,6 +4,11 @@ import { useProducts } from '../../context/ProductContext'
 // 後台「產品編輯 - 規格設定」頁
 // 參照 https://greenbox.tw/GoX/Product/Edit18/:id 下載的 HTML 實際 DOM 重建
 // 真實系統用 Ant Design 5 + Tailwind，這裡用純 CSS 模擬視覺
+//
+// 【Phase D】欄位名對齊 ProductDetail（designer.cs）：
+//   Sort / Detail / Quantity / Unit / OriginAmt / DiscPrice / Stock / SoldAmt / Cost / Freight
+//   OrdersTime / OrdersFinalExportTime / StartTime / EndTime / AutoReplenishOnZero
+//   Display / IsYuanxiong / IsSpecial / IsCOD / IsSubscritpion / ThresholdAmount / Limit / IsGift
 
 export default function AdminProductEdit() {
   const { id } = useParams()
@@ -32,13 +37,13 @@ export default function AdminProductEdit() {
 
         {/* 規格 list */}
         <div className="pd-specs">
-          {product.specs.map((spec, idx) => (
+          {product.Specs.map((spec, idx) => (
             <SpecRow
-              key={spec.id}
+              key={spec.Id}
               spec={spec}
               index={idx}
-              onChange={(patch) => updateSpec(productId, spec.id, patch)}
-              onRemove={() => removeSpec(productId, spec.id)}
+              onChange={(patch) => updateSpec(productId, spec.Id, patch)}
+              onRemove={() => removeSpec(productId, spec.Id)}
             />
           ))}
 
@@ -67,7 +72,7 @@ export default function AdminProductEdit() {
 }
 
 function SpecRow({ spec, index, onChange, onRemove }) {
-  const locked = spec.isGift
+  const locked = spec.IsGift
 
   const set = (key) => (e) => {
     const v = e.target.type === 'checkbox' ? e.target.checked :
@@ -78,17 +83,17 @@ function SpecRow({ spec, index, onChange, onRemove }) {
 
   const toggleGift = (e) => {
     const next = e.target.checked
-    const patch = { isGift: next }
+    const patch = { IsGift: next }
     if (next) {
       // 設為贈品 → 清空 / 關閉互斥欄位
-      patch.isSpecial = false
-      patch.isCOD = false
-      patch.isSubscription = false
-      patch.thresholdAmount = 0
-      patch.limitQuantity = 0
-      patch.originPrice = 0
-      patch.discountPrice = 0
-      if (!spec.description) patch.description = '贈品'
+      patch.IsSpecial = false
+      patch.IsCOD = false
+      patch.IsSubscritpion = false
+      patch.ThresholdAmount = 0
+      patch.Limit = 0
+      patch.OriginAmt = 0
+      patch.DiscPrice = 0
+      if (!spec.Detail) patch.Detail = '贈品'
     }
     onChange(patch)
   }
@@ -99,22 +104,22 @@ function SpecRow({ spec, index, onChange, onRemove }) {
       <div className="pd-row-1">
         <div className="pd-col pd-col-sort">
           <Label required>規格排序</Label>
-          <input type="number" className="pd-input" value={spec.sort} onChange={set('sort')} />
-          <div className="pd-spec-id">規格 ID: {spec.id}</div>
+          <input type="number" className="pd-input" value={spec.Sort} onChange={set('Sort')} />
+          <div className="pd-spec-id">規格 ID: {spec.Id}</div>
         </div>
 
         <div className="pd-grid-10 grow">
           <div className="pd-col col-span-2">
             <Label>規格描述</Label>
-            <input type="text" className="pd-input" value={spec.description} onChange={set('description')} />
+            <input type="text" className="pd-input" value={spec.Detail} onChange={set('Detail')} />
           </div>
           <div className="pd-col">
             <Label required>規格量</Label>
-            <input type="number" className="pd-input" value={spec.quantity} onChange={set('quantity')} />
+            <input type="number" className="pd-input" value={spec.Quantity} onChange={set('Quantity')} />
           </div>
           <div className="pd-col">
             <Label required>單位</Label>
-            <select className="pd-select" value={spec.unit} onChange={set('unit')}>
+            <select className="pd-select" value={spec.Unit} onChange={set('Unit')}>
               <option value="個">個</option>
               <option value="組">組</option>
               <option value="包">包</option>
@@ -125,27 +130,27 @@ function SpecRow({ spec, index, onChange, onRemove }) {
           </div>
           <div className="pd-col">
             <Label required>產品原價</Label>
-            <input type="number" className="pd-input" value={spec.originPrice} onChange={set('originPrice')} disabled={locked} />
+            <input type="number" className="pd-input" value={spec.OriginAmt} onChange={set('OriginAmt')} disabled={locked} />
           </div>
           <div className="pd-col">
             <Label>產品優惠價</Label>
-            <input type="number" className="pd-input" value={spec.discountPrice} onChange={set('discountPrice')} disabled={locked} />
+            <input type="number" className="pd-input" value={spec.DiscPrice} onChange={set('DiscPrice')} disabled={locked} />
           </div>
           <div className="pd-col">
             <Label required>庫存量</Label>
-            <input type="number" className="pd-input" value={spec.stock} onChange={set('stock')} />
+            <input type="number" className="pd-input" value={spec.Stock} onChange={set('Stock')} />
           </div>
           <div className="pd-col">
             <Label>銷售量</Label>
-            <div className="pd-sold">{spec.sold}</div>
+            <div className="pd-sold">{spec.SoldAmt}</div>
           </div>
           <div className="pd-col">
             <Label>成本</Label>
-            <input type="number" className="pd-input" value={spec.cost ?? ''} onChange={set('cost')} />
+            <input type="number" className="pd-input" value={spec.Cost ?? ''} onChange={set('Cost')} />
           </div>
           <div className="pd-col">
             <Label>運費</Label>
-            <input type="number" className="pd-input" value={spec.freight ?? ''} onChange={set('freight')} />
+            <input type="number" className="pd-input" value={spec.Freight ?? ''} onChange={set('Freight')} />
           </div>
         </div>
       </div>
@@ -154,23 +159,23 @@ function SpecRow({ spec, index, onChange, onRemove }) {
       <div className="pd-grid-9">
         <div className="pd-col col-span-2">
           <Label required>預計出貨日</Label>
-          <input type="date" className="pd-input" value={spec.expectShipDate || ''} onChange={set('expectShipDate')} />
+          <input type="date" className="pd-input" value={spec.OrdersTime || ''} onChange={set('OrdersTime')} />
         </div>
         <div className="pd-col col-span-2">
           <Label>預計最後出貨日</Label>
-          <input type="date" className="pd-input" value={spec.expectLastShipDate || ''} onChange={set('expectLastShipDate')} />
+          <input type="date" className="pd-input" value={spec.OrdersFinalExportTime || ''} onChange={set('OrdersFinalExportTime')} />
         </div>
         <div className="pd-col col-span-2">
           <Label required>開始販售</Label>
-          <input type="text" className="pd-input" placeholder="YYYY/MM/DD HH:mm" value={spec.saleStart || ''} onChange={set('saleStart')} />
+          <input type="text" className="pd-input" placeholder="YYYY/MM/DD HH:mm" value={spec.StartTime || ''} onChange={set('StartTime')} />
         </div>
         <div className="pd-col col-span-2">
           <Label required>結束販售</Label>
-          <input type="text" className="pd-input" placeholder="YYYY/MM/DD HH:mm" value={spec.saleEnd || ''} onChange={set('saleEnd')} />
+          <input type="text" className="pd-input" placeholder="YYYY/MM/DD HH:mm" value={spec.EndTime || ''} onChange={set('EndTime')} />
         </div>
         <div className="pd-col">
           <Label required>自動延後區間</Label>
-          <input type="number" className="pd-input" value={spec.autoExtendDays ?? 0} onChange={set('autoExtendDays')} />
+          <input type="number" className="pd-input" value={spec.AutoReplenishOnZero ?? 0} onChange={set('AutoReplenishOnZero')} />
         </div>
       </div>
 
@@ -178,19 +183,19 @@ function SpecRow({ spec, index, onChange, onRemove }) {
       <div className="pd-limit-wrap">
         <div className="pd-limit-title">規格限制</div>
         <div className="pd-limit-group">
-          <AntCheck checked={spec.isListed} onChange={set('isListed')} label="上架" />
-          <AntCheck checked={spec.isYuanxiong} onChange={set('isYuanxiong')} label="是否為遠雄產品" />
-          <AntCheck checked={spec.isSpecial}      onChange={set('isSpecial')}      label="是否特殊商品"   disabled={locked} />
-          <AntCheck checked={spec.isCOD}          onChange={set('isCOD')}          label="是否貨到付款"   disabled={locked} />
-          <AntCheck checked={spec.isSubscription} onChange={set('isSubscription')} label="是否為訂閱制商品" disabled={locked} />
+          <AntCheck checked={spec.Display} onChange={set('Display')} label="上架" />
+          <AntCheck checked={spec.IsYuanxiong} onChange={set('IsYuanxiong')} label="是否為遠雄產品" />
+          <AntCheck checked={spec.IsSpecial}      onChange={set('IsSpecial')}      label="是否特殊商品"   disabled={locked} />
+          <AntCheck checked={spec.IsCOD}          onChange={set('IsCOD')}          label="是否貨到付款"   disabled={locked} />
+          <AntCheck checked={spec.IsSubscritpion} onChange={set('IsSubscritpion')} label="是否為訂閱制商品" disabled={locked} />
           <div className={`pd-threshold ${locked ? 'locked' : ''}`}>
-            <AntCheck checked={!!spec.thresholdAmount} onChange={() => {/* 由金額本身控制 */}} label="滿" disabled={locked} />
-            <input type="number" className="pd-input w-24" value={spec.thresholdAmount || ''} onChange={set('thresholdAmount')} disabled={locked} />
+            <AntCheck checked={!!spec.ThresholdAmount} onChange={() => {/* 由金額本身控制 */}} label="滿" disabled={locked} />
+            <input type="number" className="pd-input w-24" value={spec.ThresholdAmount || ''} onChange={set('ThresholdAmount')} disabled={locked} />
             <span className="whitespace">元可購買，限購數量</span>
-            <input type="number" className="pd-input w-16" value={spec.limitQuantity || ''} onChange={set('limitQuantity')} disabled={locked} />
+            <input type="number" className="pd-input w-16" value={spec.Limit || ''} onChange={set('Limit')} disabled={locked} />
           </div>
           {/* 設為贈品 — 與其他 checkbox 同一視覺 */}
-          <AntCheck checked={spec.isGift} onChange={toggleGift} label="設為贈品" />
+          <AntCheck checked={spec.IsGift} onChange={toggleGift} label="設為贈品" />
         </div>
       </div>
 
@@ -198,11 +203,11 @@ function SpecRow({ spec, index, onChange, onRemove }) {
       <div className="pd-row-4">
         <div className="pd-replenish">
           <Label hint="商品庫存歸零時自動補貨的數量">售完補庫存</Label>
-          <input type="number" className="pd-input" placeholder="請輸入" value={spec.autoReplenish ?? ''} onChange={set('autoReplenish')} />
+          <input type="number" className="pd-input" placeholder="請輸入" value={spec.AutoReplenish ?? ''} onChange={set('AutoReplenish')} />
         </div>
         <div className="pd-replenish">
           <Label hint="每週自動補庫存的數量">排程補庫存</Label>
-          <input type="number" className="pd-input" placeholder="請輸入" value={spec.weeklyReplenish ?? ''} onChange={set('weeklyReplenish')} />
+          <input type="number" className="pd-input" placeholder="請輸入" value={spec.WeeklyReplenish ?? ''} onChange={set('WeeklyReplenish')} />
         </div>
         <div className="pd-replenish-btn">
           <button type="button" className="pd-btn pd-btn-default">規格變更紀錄</button>
@@ -211,7 +216,7 @@ function SpecRow({ spec, index, onChange, onRemove }) {
         <button
           type="button"
           className="pd-btn pd-btn-danger"
-          disabled={spec.sold > 0}
+          disabled={spec.SoldAmt > 0}
           onClick={onRemove}
         >刪除此規格</button>
       </div>

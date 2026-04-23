@@ -1,227 +1,233 @@
 // 完全比照 https://greenbox.tw/Orders/ConfirmOrder 的資料
 // 所有 PID/PdId/圖片/價格/庫存 皆來自線上 DOM
+//
+// 【Phase D 對齊 fruit_web】
+// - 所有 API DTO 欄位全部 PascalCase
+// - 分類用 ProductCategoryEnum 整數值當 Type（冷凍專區=7、粥寶寶專區=9、益菓保=11）
+// - 溫層用 TemperatureLayer 整數（常溫=1、冷藏=2、冷凍=3）
+// - 僅保留 `uid` 為 camelCase，作為 React key 使用（不傳後端）
+
+// ─── 對齊 fruit_web 的 Enum ─────────────────────────
+export const ProductCategoryEnum = {
+  無分類: -1,
+  產地直送: 0,
+  加購品: 1,
+  快速到貨: 2,
+  企業合作: 3,
+  Vip會員卡: 4,
+  箱類: 5,
+  週期性商品: 6,
+  冷凍專區: 7,
+  宅魚_宅魚鮮吃: 8,
+  粥寶寶專區: 9,
+  無法辨識: 10,
+  益菓保: 11,
+}
+
+export const TemperatureLayer = {
+  未知: 0,
+  常溫: 1,
+  冷藏: 2,
+  冷凍: 3,
+}
 
 // ─── 分類（用來渲染 categorey-title 等）──
+// Key 用 ProductCategoryEnum 整數，方便從 cart item 的 Type 直接查表
 export const CATEGORIES = {
-  frozen: {
-    key: 'frozen',
-    title: '冷凍超市',
-    dataType: '冷凍專區',
-    icon: 'https://fruitbox.blob.core.windows.net/pagematerials/shared/冷凍專區_icon.png',
-    saAreaId: 'SA-Area-Frozen',
-    freightLink: '/Products/FrozenFood?categoryName=onsale',
-    freightThreshold: 1500,
-    freightFee: 150,
-    freightLabel: '冷凍專區(冷凍)',
+  [ProductCategoryEnum.冷凍專區]: {
+    Type: ProductCategoryEnum.冷凍專區,
+    Title: '冷凍超市',
+    DataType: '冷凍專區',
+    Icon: 'https://fruitbox.blob.core.windows.net/pagematerials/shared/冷凍專區_icon.png',
+    SaAreaId: 'SA-Area-Frozen',
+    FreightLink: '/Products/FrozenFood?categoryName=onsale',
+    FreightThreshold: 1500,
+    FreightFee: 150,
+    FreightLabel: '冷凍專區(冷凍)',
   },
-  babyfood: {
-    key: 'babyfood',
-    title: '粥寶寶/綠時光',
-    dataType: '粥寶寶專區',
-    icon: 'https://fruitbox.blob.core.windows.net/pagematerials/shared/粥寶寶專區_icon.png',
-    saAreaId: 'SA-Area-BabyFood',
-    freightLink: '/Products/Kitchenette',
-    freightThreshold: 1500,
-    freightFee: 150,
-    freightLabel: '粥寶寶專區(冷凍)',
+  [ProductCategoryEnum.粥寶寶專區]: {
+    Type: ProductCategoryEnum.粥寶寶專區,
+    Title: '粥寶寶/綠時光',
+    DataType: '粥寶寶專區',
+    Icon: 'https://fruitbox.blob.core.windows.net/pagematerials/shared/粥寶寶專區_icon.png',
+    SaAreaId: 'SA-Area-BabyFood',
+    FreightLink: '/Products/Kitchenette',
+    FreightThreshold: 1500,
+    FreightFee: 150,
+    FreightLabel: '粥寶寶專區(冷凍)',
   },
 }
 
-// ─── 初始購物車：商品依 categoryKey 分組 ──
-// 每項：pid, pdid, name, spec, specSuffix, nameWarning, image, deliveryTime, price, quantity, maxQty, temperatureLabel
+// ─── 初始購物車：商品依 Type 分組 ──
+// 每項對應 fruit_web 的 `CartItem`（HuashanCRM/Models/Cart/CartItem.cs）+ 未來新增的
+// IsGift / GiftRuleId / IsGiftDeclined 三個欄位
 export const initialCart = [
   {
-    categoryKey: 'frozen',
-    items: [
+    Type: ProductCategoryEnum.冷凍專區,
+    Items: [
       {
         uid: 'f-62376-97410',
-        pid: 62376,
-        pdid: 97410,
-        name: '【野人舒食】沙漠湖鹽雞胸',
-        spec: '1 包',
-        specSuffix: '',
-        nameWarning: '',
-        image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
-        deliveryTime: '2026/04/22 ~',
-        price: 45,
-        quantity: 1,
-        maxQty: 33,
-        temperatureLabel: '冷凍',
+        ProductId: 62376,
+        ProductDetailId: 97410,
+        ProductName: '【野人舒食】沙漠湖鹽雞胸',
+        ProductSpec: '1 包',
+        SpecSuffix: '',
+        NameWarning: '',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
+        DeliveryTime: '2026/04/22 ~',
+        Price: 45,
+        Quantity: 1,
+        MaxQty: 33,
+        Type: ProductCategoryEnum.冷凍專區,
+        TemperatureType: TemperatureLayer.冷凍,
+        TemperatureTypeName: '冷凍',
+        IsGift: false,
+        GiftRuleId: null,
+        IsGiftDeclined: false,
       },
       {
         uid: 'f-75491-161120',
-        pid: 75491,
-        pdid: 161120,
-        name: '新客限定【宅魚】-澎湖蟹管肉',
-        spec: '1 包',
-        specSuffix: '(100g，限購1份)',
-        nameWarning: '',
-        image: 'https://greenboxcdn.azureedge.net/products/Images/20250204160003.webp',
-        deliveryTime: '2026/04/22 ~',
-        price: 99,
-        quantity: 1,
-        maxQty: 88,
-        temperatureLabel: '冷凍',
+        ProductId: 75491,
+        ProductDetailId: 161120,
+        ProductName: '新客限定【宅魚】-澎湖蟹管肉',
+        ProductSpec: '1 包',
+        SpecSuffix: '(100g，限購1份)',
+        NameWarning: '',
+        Pic: 'https://greenboxcdn.azureedge.net/products/Images/20250204160003.webp',
+        DeliveryTime: '2026/04/22 ~',
+        Price: 99,
+        Quantity: 1,
+        MaxQty: 88,
+        Type: ProductCategoryEnum.冷凍專區,
+        TemperatureType: TemperatureLayer.冷凍,
+        TemperatureTypeName: '冷凍',
+        IsGift: false,
+        GiftRuleId: null,
+        IsGiftDeclined: false,
       },
     ],
   },
   {
-    categoryKey: 'babyfood',
-    items: [
+    Type: ProductCategoryEnum.粥寶寶專區,
+    Items: [
       {
         uid: 'b-66539-116462',
-        pid: 66539,
-        pdid: 116462,
-        name: '一歲以上PLUS+ 閃亮升級燉飯組合',
-        spec: '1 組',
-        specSuffix: '(有牛/10入，150克/入)',
-        nameWarning: '本產品已經過多次人工挑刺與去除鱗片，但仍有機率魚刺殘留，建議檢查後再給寶寶食用，餵食時仍須注意。',
-        image: 'https://greenboxcdn.azureedge.net/products/Images/20241126175153.webp',
-        deliveryTime: '2026/04/22 ~',
-        price: 949,
-        quantity: 1,
-        maxQty: 20,
-        temperatureLabel: '冷凍',
+        ProductId: 66539,
+        ProductDetailId: 116462,
+        ProductName: '一歲以上PLUS+ 閃亮升級燉飯組合',
+        ProductSpec: '1 組',
+        SpecSuffix: '(有牛/10入，150克/入)',
+        NameWarning: '本產品已經過多次人工挑刺與去除鱗片，但仍有機率魚刺殘留，建議檢查後再給寶寶食用，餵食時仍須注意。',
+        Pic: 'https://greenboxcdn.azureedge.net/products/Images/20241126175153.webp',
+        DeliveryTime: '2026/04/22 ~',
+        Price: 949,
+        Quantity: 1,
+        MaxQty: 20,
+        Type: ProductCategoryEnum.粥寶寶專區,
+        TemperatureType: TemperatureLayer.冷凍,
+        TemperatureTypeName: '冷凍',
+        IsGift: false,
+        GiftRuleId: null,
+        IsGiftDeclined: false,
       },
-      // ── 【限時免運】綜合米餅六入組 × 2（觸發買就送；加上燉飯組合後也觸發滿額贈）──
+      // 綜合米餅六入組 × 2 — 用來觸發買就送；加上燉飯組合後也觸發滿額贈
       {
         uid: 'b-75762-180001',
-        pid: 75762,
-        pdid: 180001,
-        name: '【限時免運】綜合米餅六入組',
-        spec: '1 組',
-        specSuffix: '(香蕉、鳳梨、草莓米餅 3 口味共 6 包，約 50±3 克/包)',
-        image: 'https://greenboxcdn.azureedge.net/upload/Album_3035/File/202604021019081.jpg',
-        deliveryTime: '2026/04/22 ~',
-        price: 900,
-        quantity: 2,
-        maxQty: 10,
-        temperatureLabel: '冷凍',
+        ProductId: 75762,
+        ProductDetailId: 180001,
+        ProductName: '【限時免運】綜合米餅六入組',
+        ProductSpec: '1 組',
+        SpecSuffix: '(香蕉、鳳梨、草莓米餅 3 口味共 6 包，約 50±3 克/包)',
+        NameWarning: '',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Album_3035/File/202604021019081.jpg',
+        DeliveryTime: '2026/04/22 ~',
+        Price: 900,
+        Quantity: 2,
+        MaxQty: 10,
+        Type: ProductCategoryEnum.粥寶寶專區,
+        TemperatureType: TemperatureLayer.冷凍,
+        TemperatureTypeName: '冷凍',
+        IsGift: false,
+        GiftRuleId: null,
+        IsGiftDeclined: false,
       },
     ],
-  },
-]
-
-// ─── 贈品規則（前台觸發依據）──────
-// threshold: 以 categoryKey 的非贈品小計 vs thresholdAmount / hintAmount 判斷
-// buy_to_get: 以購物車中 targetPid 的總件數 vs thresholdQuantity 判斷
-export const GIFT_RULES = [
-  {
-    id: 'g-threshold-保冷袋',
-    giftType: 'threshold',
-    categoryKey: 'babyfood',            // 粥寶寶/綠時光 分類小計
-    thresholdAmount: 2000,
-    hintAmount: 1800,
-    repeatable: false,                  // 滿額贈不可重複
-    popupText:
-      '粥寶寶專區消費滿 $2,000 元，即可獲得此贈品一份。\n限 VIP 等級（含）以上會員。\n每筆訂單限獲一份，數量有限，送完為止。',
-    gift: {
-      pid: 69928,
-      pdid: 163483,
-      name: '粥寶寶多功能保冷袋',
-      spec: '1 個',
-      specSuffix: '(贈品)',
-      image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
-      deliveryTime: '2026/04/22 ~',
-      quantity: 1,
-      temperatureLabel: '冷凍',
-    },
-  },
-  {
-    id: 'g-buy-集點卡',
-    giftType: 'buy_to_get',
-    categoryKey: 'babyfood',
-    targetPid: 75762,                   // 【限時免運】綜合米餅六入組
-    targetName: '綜合米餅六入組',
-    thresholdQuantity: 1,
-    repeatable: true,                   // 買就送「可重複贈送」：買 1 件送 1 張、買 2 件送 2 張…
-    popupText:
-      '購買【綜合米餅六入組】每 1 件（含）以上，即可獲得此贈品一份。\n限 VIP 等級（含）以上會員。\n可重複贈送：購買越多、集點卡送越多！',
-    gift: {
-      pid: 69929,
-      pdid: 163484,
-      name: '粥寶寶集點趣｜集點卡，米餅肉鬆適用',
-      spec: '1 張',
-      specSuffix: '(贈品)',
-      image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
-      deliveryTime: '2026/04/22 ~',
-      quantity: 1,
-      temperatureLabel: '冷凍',
-    },
   },
 ]
 
 // ─── 超值加購：每個 SA area 的 items ──
+// Items 欄位對齊 CartOrderItem 基本欄位（ProductId/ProductDetailId/ProductName/Pic/...）
+// OriginPrice / DiscountPrice 是 demo 用的加購價資訊
 export const SA_AREAS = {
   'SA-Area-Frozen': {
-    categoryKey: 'frozen',
-    items: [
+    Type: ProductCategoryEnum.冷凍專區,
+    Items: [
       {
-        pid: 75981, pdid: 163597,
-        name: '滿$999加購【無毒農嚴選】櫻桃鴨胸（大） 260g±10%',
-        temperatureLabel: '冷凍',
-        image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202505080228511.jpg',
-        originPrice: 329, discountPrice: 209,
+        ProductId: 75981, ProductDetailId: 163597,
+        ProductName: '滿$999加購【無毒農嚴選】櫻桃鴨胸（大） 260g±10%',
+        TemperatureTypeName: '冷凍',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202505080228511.jpg',
+        OriginPrice: 329, DiscountPrice: 209,
       },
       {
-        pid: 76603, pdid: 166096,
-        name: '滿$999超值加購【無毒農嚴選】宜蘭冬山公香魚 150g-200g/尾',
-        temperatureLabel: '冷凍',
-        image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202510140722091.jpg',
-        originPrice: 69, discountPrice: 49,
+        ProductId: 76603, ProductDetailId: 166096,
+        ProductName: '滿$999超值加購【無毒農嚴選】宜蘭冬山公香魚 150g-200g/尾',
+        TemperatureTypeName: '冷凍',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202510140722091.jpg',
+        OriginPrice: 69, DiscountPrice: 49,
       },
       {
-        pid: 76443, pdid: 165474,
-        name: '滿$999超值加購【宅肉坊】豬五花燒肉片',
-        temperatureLabel: '冷凍',
-        image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202504160517021.jpg',
-        originPrice: 170, discountPrice: 153,
+        ProductId: 76443, ProductDetailId: 165474,
+        ProductName: '滿$999超值加購【宅肉坊】豬五花燒肉片',
+        TemperatureTypeName: '冷凍',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202504160517021.jpg',
+        OriginPrice: 170, DiscountPrice: 153,
       },
       {
-        pid: 72964, pdid: 150419,
-        name: '滿$999加購【宅肉坊】去皮清雞胸肉',
-        temperatureLabel: '冷凍',
-        image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200525301.jpg',
-        originPrice: 175, discountPrice: 158,
+        ProductId: 72964, ProductDetailId: 150419,
+        ProductName: '滿$999加購【宅肉坊】去皮清雞胸肉',
+        TemperatureTypeName: '冷凍',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200525301.jpg',
+        OriginPrice: 175, DiscountPrice: 158,
       },
     ],
   },
   'SA-Area-BabyFood': {
-    categoryKey: 'babyfood',
-    items: [
+    Type: ProductCategoryEnum.粥寶寶專區,
+    Items: [
       {
-        pid: 73189, pdid: 167992,
-        name: '超值加購│大人系養生-山藥鮑魚雞湯(2026-07-20到期)',
-        temperatureLabel: '冷凍',
-        image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202506230625241.png',
-        originPrice: 199, discountPrice: 195,
+        ProductId: 73189, ProductDetailId: 167992,
+        ProductName: '超值加購│大人系養生-山藥鮑魚雞湯(2026-07-20到期)',
+        TemperatureTypeName: '冷凍',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202506230625241.png',
+        OriginPrice: 199, DiscountPrice: 195,
       },
       {
-        pid: 73192, pdid: 167993,
-        name: '超值加購│大人系養生-山藥排骨湯(2026-07-20到期)',
-        temperatureLabel: '冷凍',
-        image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202506230612591.png',
-        originPrice: 199, discountPrice: 195,
+        ProductId: 73192, ProductDetailId: 167993,
+        ProductName: '超值加購│大人系養生-山藥排骨湯(2026-07-20到期)',
+        TemperatureTypeName: '冷凍',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202506230612591.png',
+        OriginPrice: 199, DiscountPrice: 195,
       },
       {
-        pid: 72144, pdid: 167400,
-        name: '超值加購│一歲半以上-塔香雙茄打拋豬炒飯 2入，200克/入',
-        temperatureLabel: '冷凍',
-        image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202504220622271.png',
-        originPrice: 250, discountPrice: 245,
+        ProductId: 72144, ProductDetailId: 167400,
+        ProductName: '超值加購│一歲半以上-塔香雙茄打拋豬炒飯 2入，200克/入',
+        TemperatureTypeName: '冷凍',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202504220622271.png',
+        OriginPrice: 250, DiscountPrice: 245,
       },
       {
-        pid: 76928, pdid: 167995,
-        name: '超值加購│Stasher方形矽膠密封袋-粥寶寶客製款(白色) 白色',
-        temperatureLabel: '冷凍',
-        image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202603240416031.png',
-        originPrice: 520, discountPrice: 480,
+        ProductId: 76928, ProductDetailId: 167995,
+        ProductName: '超值加購│Stasher方形矽膠密封袋-粥寶寶客製款(白色) 白色',
+        TemperatureTypeName: '冷凍',
+        Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202603240416031.png',
+        OriginPrice: 520, DiscountPrice: 480,
       },
     ],
   },
 }
 
-// ─── header 裝飾（用在 StoreLayout 的 Header，之前已經寫好了這份保留給 Header 參考）──
+// ─── header 裝飾（用在 StoreLayout 的 Header）──
 export const member = { name: 'Glen Wen' }
 
 export const navLinks = [
