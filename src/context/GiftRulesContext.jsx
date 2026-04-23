@@ -38,13 +38,18 @@ export function GiftRulesProvider({ children }) {
     setRules(prev => prev.map(r => r.id === id ? { ...r, isListed: !r.isListed } : r))
   }
 
+  const updateStock = (id, stock) => {
+    const now = new Date().toLocaleString('zh-TW', { hour12: false }).replace(/\//g, '/')
+    setRules(prev => prev.map(r => r.id === id ? { ...r, stock, updateTime: now } : r))
+  }
+
   const reset = () => {
     setRules(initialGiftRules)
     localStorage.removeItem(LS_KEY)
   }
 
   return (
-    <GiftRulesContext.Provider value={{ rules, addRule, updateRule, deleteRule, toggleListed, reset }}>
+    <GiftRulesContext.Provider value={{ rules, addRule, updateRule, deleteRule, toggleListed, updateStock, reset }}>
       {children}
     </GiftRulesContext.Provider>
   )

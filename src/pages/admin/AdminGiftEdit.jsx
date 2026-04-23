@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useGiftRules } from '../../context/GiftRulesContext'
+import Switch from '../../components/Switch'
 import {
   PRODUCTION_LINES, TEMPERATURES, RULE_TYPE,
   TARGET_PRODUCT_NAMES, TARGET_SPEC_NAMES,
@@ -32,13 +33,30 @@ const EMPTY_RULE = {
 export default function AdminGiftEdit() {
   const { id } = useParams()
   const nav = useNavigate()
-  const { rules, addRule, updateRule } = useGiftRules()
+  const { rules, addRule, updateRule, toggleListed, updateStock } = useGiftRules()
   const isNew = !id || id === 'new'
 
   const [form, setForm] = useState(EMPTY_RULE)
   const [productIdsText, setProductIdsText] = useState('')
   const [specIdsText,    setSpecIdsText]    = useState('')
   const [preview, setPreview] = useState(null)  // 'product' | 'spec' | null
+  const [editingStock, setEditingStock] = useState(false)
+  const [stockDraft, setStockDraft] = useState('')
+
+  // 點鉛筆：從 form 帶出當前值當草稿
+  const startStockEdit = () => {
+    setStockDraft(String(form.stock ?? 0))
+    setEditingStock(true)
+  }
+  // 點 ✓：直接寫入 context（新贈品則只更新 form，等建立時一起 addRule）
+  const commitStock = () => {
+    const n = Number(stockDraft)
+    if (Number.isNaN(n) || n < 0) { setEditingStock(false); return }
+    if (!isNew) updateStock(Number(id), n)
+    setForm(prev => ({ ...prev, stock: n }))
+    setEditingStock(false)
+  }
+  const cancelStockEdit = () => setEditingStock(false)
 
   useEffect(() => {
     if (isNew) return
@@ -49,7 +67,16 @@ export default function AdminGiftEdit() {
       setProductIdsText((found.targetProductIds ?? []).join(', '))
       setSpecIdsText((found.targetSpecIds ?? []).join(', '))
     }
-  }, [id, rules, isNew])
+    // 只在進入頁面 / 切換 id 時初始化 form；後續 rules 變動（如 Switch 直接改動 isListed）
+    // 不再覆蓋 form，避免編輯中的其他欄位被重設
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isNew])
+
+  // 上下架 Switch：直接切換 context 的 isListed（即時生效），同時同步 form 狀態
+  const handleToggleListed = (next) => {
+    if (!isNew) toggleListed(Number(id))
+    update('isListed', next)
+  }
 
   const update = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
 
@@ -96,8 +123,66 @@ export default function AdminGiftEdit() {
                   <InfoPair label="規格"    value={form.productSpec} />
                 </div>
                 <div className="gift-info-col">
-                  <InfoPair label="剩餘數量"   value={form.stock} />
-                  <InfoPair label="上架狀態"   value={form.isListed ? '✅' : '❌'} />
+                  <div className="info-pair">
+                    <span className="info-label">剩餘數量：</span>
+                    <span className="info-value">
+                      {editingStock ? (
+                        <span className="stock-edit-wrap">
+                          <input
+                            type="number"
+                            className="form-input stock-input"
+                            value={stockDraft}
+                            autoFocus
+                            onChange={e => setStockDraft(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') commitStock()
+                              else if (e.key === 'Escape') cancelStockEdit()
+                            }}
+                          />
+                          <button
+                            type="button"
+                            className="icon-btn-confirm"
+                            onClick={commitStock}
+                            title="儲存"
+                          >
+                            <i className="fa fa-check" aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-btn-cancel"
+                            onClick={cancelStockEdit}
+                            title="取消"
+                          >
+                            <i className="fa fa-times" aria-hidden="true" />
+                          </button>
+                        </span>
+                      ) : (
+                        <span className="stock-cell">
+                          <span>{form.stock}</span>
+                          <button
+                            type="button"
+                            className="icon-btn-pencil"
+                            onClick={startStockEdit}
+                            title="修改庫存"
+                          >
+                            <i className="fa fa-pencil" aria-hidden="true" />
+                          </button>
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="info-pair">
+                    <span className="info-label">上架狀態：</span>
+                    <span className="info-value">
+                      <Switch
+                        checked={!!form.isListed}
+                        onChange={handleToggleListed}
+                      />
+                      <span className="switch-label-inline">
+                        {form.isListed ? '上架中' : '已下架'}
+                      </span>
+                    </span>
+                  </div>
                   <InfoPair label="產線"       value={pl?.label} />
                   <InfoPair label="溫層"       value={temp?.label} />
                   <InfoPair label="限購規則"
@@ -111,28 +196,6 @@ export default function AdminGiftEdit() {
           {/* 贈送條件 */}
           <section className="cond-box">
             <h4>贈送條件</h4>
-
-            <div className="form-row">
-              <label>上架狀態：</label>
-              <div className="radio-group">
-                <label className="radio">
-                  <input
-                    type="radio"
-                    checked={form.isListed === true}
-                    onChange={() => update('isListed', true)}
-                  />
-                  <span>上架</span>
-                </label>
-                <label className="radio">
-                  <input
-                    type="radio"
-                    checked={form.isListed === false}
-                    onChange={() => update('isListed', false)}
-                  />
-                  <span>下架</span>
-                </label>
-              </div>
-            </div>
 
             <div className="form-row">
               <label>贈送條件：</label>

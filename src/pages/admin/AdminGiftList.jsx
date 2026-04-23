@@ -1,10 +1,24 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useGiftRules } from '../../context/GiftRulesContext'
+import Switch from '../../components/Switch'
 import { PRODUCTION_LINES, TEMPERATURES } from '../../data/giftRules'
 
 export default function AdminGiftList() {
-  const { rules, toggleListed, deleteRule } = useGiftRules()
+  const { rules, toggleListed, deleteRule, updateStock } = useGiftRules()
+  const [editingStockId, setEditingStockId] = useState(null)
+  const [stockDraft, setStockDraft] = useState('')
+
+  const startStockEdit = (r) => {
+    setEditingStockId(r.id)
+    setStockDraft(String(r.stock ?? 0))
+  }
+  const commitStock = (id) => {
+    const n = Number(stockDraft)
+    if (!Number.isNaN(n) && n >= 0) updateStock(id, n)
+    setEditingStockId(null)
+  }
+  const cancelStockEdit = () => setEditingStockId(null)
 
   // 輸入中的條件（pending）
   const [kw, setKw] = useState('')
@@ -124,16 +138,62 @@ export default function AdminGiftList() {
                   <td className="cell-name">{r.productName}</td>
                   <td>{r.productSpec}</td>
                   <td className="cell-center">
-                    {r.isListed
-                      ? <span className="ck-on" onClick={() => toggleListed(r.id)}>✅</span>
-                      : <span className="ck-off" onClick={() => toggleListed(r.id)}>❌</span>}
+                    <Switch
+                      size="sm"
+                      checked={!!r.isListed}
+                      onChange={() => toggleListed(r.id)}
+                    />
                   </td>
                   <td className="cell-cond">{renderCondition(r)}</td>
                   <td className="cell-center">
                     {r.repeatable ? <span style={{ color: '#22c55e', fontWeight: 600 }}>是</span> : <span style={{ color: '#999' }}>否</span>}
                   </td>
-                  <td className={`cell-center ${r.stock === 0 ? 'stock-zero' : ''}`}>
-                    {r.stock === 0 ? <>❌&nbsp;0</> : r.stock}
+                  <td className={`cell-center ${r.stock === 0 && editingStockId !== r.id ? 'stock-zero' : ''}`}>
+                    {editingStockId === r.id ? (
+                      <div className="stock-edit-stack">
+                        <input
+                          type="number"
+                          className="form-input stock-input"
+                          value={stockDraft}
+                          autoFocus
+                          onChange={e => setStockDraft(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') commitStock(r.id)
+                            else if (e.key === 'Escape') cancelStockEdit()
+                          }}
+                        />
+                        <div className="stock-actions-row">
+                          <button
+                            type="button"
+                            className="icon-btn-confirm"
+                            onClick={() => commitStock(r.id)}
+                            title="儲存"
+                          >
+                            <i className="fa fa-check" aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-btn-cancel"
+                            onClick={cancelStockEdit}
+                            title="取消"
+                          >
+                            <i className="fa fa-times" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="stock-display-stack">
+                        <span>{r.stock === 0 ? <>❌&nbsp;0</> : r.stock}</span>
+                        <button
+                          type="button"
+                          className="icon-btn-pencil"
+                          onClick={() => startStockEdit(r)}
+                          title="修改庫存"
+                        >
+                          <i className="fa fa-pencil" aria-hidden="true" />
+                        </button>
+                      </div>
+                    )}
                   </td>
                   <td className="cell-pl-temp">
                     <div>{pl?.label}</div>

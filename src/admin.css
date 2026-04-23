@@ -561,3 +561,99 @@
 .modal-table tr.row-selected td { background: #e8f1fc; color: #2c98f0; }
 .modal-hint { margin: 12px 0; font-size: 12px; color: #888; }
 .modal-actions { display: flex; justify-content: center; margin-top: 8px; }
+
+/* ===== UI Switch（Toggle）===== */
+.ui-switch {
+  position: relative;
+  display: inline-block;
+  border: 0; padding: 0; margin: 0;
+  background: #d1d5db;
+  cursor: pointer;
+  transition: background .18s ease;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.ui-switch:focus-visible {
+  outline: 2px solid #4ba83b; outline-offset: 2px;
+}
+.ui-switch-md { width: 40px; height: 22px; border-radius: 11px; }
+.ui-switch-sm { width: 32px; height: 18px; border-radius: 9px; }
+.ui-switch.on { background: #4ba83b; }
+.ui-switch.is-disabled { opacity: .5; cursor: not-allowed; }
+.ui-switch-knob {
+  position: absolute;
+  top: 2px; left: 2px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25);
+  transition: transform .18s ease;
+}
+.ui-switch-md .ui-switch-knob { width: 18px; height: 18px; }
+.ui-switch-sm .ui-switch-knob { width: 14px; height: 14px; }
+.ui-switch-md.on .ui-switch-knob { transform: translateX(18px); }
+.ui-switch-sm.on .ui-switch-knob { transform: translateX(14px); }
+
+.switch-label-inline {
+  margin-left: 8px; font-size: 13px; color: #666;
+  vertical-align: middle;
+}
+
+/* ===== 鉛筆 / 確認 / 取消 icon buttons ===== */
+.icon-btn-pencil,
+.icon-btn-confirm,
+.icon-btn-cancel {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  margin-left: 6px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+  font-size: 12px;
+  transition: all .15s;
+}
+.icon-btn-pencil:hover {
+  background: #f0f4f8; color: #2c98f0; border-color: #bcd4ea;
+}
+.icon-btn-confirm {
+  background: #4ba83b; color: #fff; border-color: #4ba83b;
+}
+.icon-btn-confirm:hover { background: #3d8c30; border-color: #3d8c30; }
+.icon-btn-cancel {
+  background: #fff; color: #999; border-color: #ccc;
+}
+.icon-btn-cancel:hover { background: #f5f5f5; color: #dc4e43; border-color: #dc4e43; }
+
+/* 編輯頁 & 列表共用的 stock cell */
+.stock-cell {
+  display: inline-flex; align-items: center; gap: 2px;
+}
+.stock-input {
+  width: 80px;
+  padding: 4px 8px;
+  text-align: right;
+}
+.stock-edit-wrap {
+  display: inline-flex; align-items: center; gap: 4px;
+  justify-content: center;
+}
+
+/* 列表頁專用：庫存欄位直式排版，操作按鈕放在數字/輸入框下方 */
+.stock-display-stack,
+.stock-edit-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.stock-display-stack > span { line-height: 1.2; }
+.stock-display-stack .icon-btn-pencil,
+.stock-actions-row .icon-btn-confirm,
+.stock-actions-row .icon-btn-cancel {
+  margin-left: 0;   /* 覆蓋預設的 6px left margin，垂直排版下不需要 */
+}
+.stock-actions-row {
+  display: inline-flex; gap: 4px;
+}
