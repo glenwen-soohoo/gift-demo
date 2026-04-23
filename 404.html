@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="utf-8" />
+    <title>贈品系統 Demo</title>
+    <script>
+      // GitHub Pages SPA fallback — rafgraph/spa-github-pages 的 301 轉 302 技巧
+      // 把 /gift-demo/admin/gifts 轉成 /gift-demo/?/admin/gifts，讓 index.html 再還原成 history
+      var pathSegmentsToKeep = 1; // 因為 base 是 /gift-demo/
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body></body>
+</html>
