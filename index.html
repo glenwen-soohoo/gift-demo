@@ -13,6 +13,19 @@
     <style>
       html { font-size: 10px; }
     </style>
+    <script type="text/javascript">
+      // GitHub Pages SPA 還原：把 404.html 編碼的 path 還原成真正的 URL 給 react-router 接管
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) {
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
   </head>
   <body>
     <div id="root"></div>
