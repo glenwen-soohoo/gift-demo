@@ -3,9 +3,15 @@ import { initialGiftRules, GIFT_RULE_STATE } from '../data/giftRules'
 
 const LS_KEY = 'gift-demo:giftRules'
 const LS_VERSION = 'gift-demo:giftRules:v'
-const CURRENT_VERSION = 3    // v3 = 修正 v2 migration 把 UseProductIds/UseSpecIds 誤設為 false
+const CURRENT_VERSION = 5    // v5 = 為已知內建規則補回 PopupText 預設（若既有資料空字串）
 
 const GiftRulesContext = createContext(null)
+
+// ─── 內建規則 Id → PopupText 預設（v5 migration 空字串時回填） ──
+const DEFAULT_POPUP_TEXTS = {}
+for (const rule of initialGiftRules) {
+  if (rule.PopupText) DEFAULT_POPUP_TEXTS[rule.Id] = rule.PopupText
+}
 
 // ─── 舊 camelCase 規則 → 新 PascalCase 規則的 migration ──
 function migrateLegacyRule(old) {
@@ -58,7 +64,8 @@ function migrateLegacyRule(old) {
     TargetSpecIds: old.targetSpecIds ?? old.TargetSpecIds ?? [],
     GiftQuantity: old.giftQuantity ?? old.GiftQuantity ?? 1,
     Repeatable: old.repeatable ?? old.Repeatable ?? false,
-    PopupText: old.popupText ?? old.PopupText ?? '',
+    // v5：PopupText 若為空字串，從內建預設表回填（讓原本被清空的規則恢復說明文字）
+    PopupText: (old.popupText || old.PopupText || DEFAULT_POPUP_TEXTS[old.id ?? old.Id] || ''),
     Stock: old.stock ?? old.Stock ?? 0,
     IsListed: old.isListed ?? old.IsListed ?? false,
     MembershipLimits: (old.membershipLimit ?? old.MembershipLimits ?? []).map(m => membershipMap[m] ?? m),

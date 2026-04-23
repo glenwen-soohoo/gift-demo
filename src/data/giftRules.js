@@ -148,7 +148,8 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: false,
-    PopupText: '',
+    PopupText:
+      '購買【一歲以上 PLUS+ 閃亮升級燉飯組合】即可獲得此贈品一份。\n限 VIP 等級（含）以上會員。\n每筆訂單限獲一份。',
     Stock: 0,
     IsListed: true,
     MembershipLimits: ['VIP', 'VVIP', 'SVIP'],
@@ -161,7 +162,8 @@ export const initialGiftRules = [
     UpdateTime: '',
     UpdateUserId: 0,
   },
-  // 4) 集點卡（常溫版） — 買米餅送，可重複
+  // 4) 集點卡（常溫版，已下架） — 示範下架狀態的規則外觀
+  //    實務上不會同一贈品掛兩條買就送規則（會同時觸發），這條刻意下架避免與 137029 重複
   {
     Id: 136837,
     ProductId: 69929,
@@ -182,11 +184,12 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: true,
-    PopupText: '',
+    PopupText:
+      '購買【綜合米餅六入組】每 1 件（含）以上，即可獲得此贈品一份。\n限首購會員。\n可重複贈送：買越多、集點卡送越多！',
     Stock: 5,
-    IsListed: true,
+    IsListed: false,                // 下架，避免前台與 137029 同時觸發
     MembershipLimits: ['FirstOrder'],
-    State: GIFT_RULE_STATE.上架中,
+    State: GIFT_RULE_STATE.下架,
     StartTime: null,
     EndTime: null,
     CreateTime: '2026/01/10 11:00',
@@ -216,7 +219,8 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: false,
-    PopupText: '',
+    PopupText:
+      '生鮮肉舖消費滿 $2,300 元，即可獲贈此折扣碼。\n結帳時於折扣碼欄位輸入「NIE250」可現折 $250。\n每筆訂單限使用一次。',
     Stock: 90,
     IsListed: true,
     MembershipLimits: [],
@@ -284,7 +288,8 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: false,
-    PopupText: '',
+    PopupText:
+      '生鮮肉舖消費滿 $2,200 元，即可獲贈此折扣碼。\n結帳時於折扣碼欄位輸入「ANV100」可現折 $250。\n每筆訂單限使用一次。',
     Stock: 90,
     IsListed: false,
     MembershipLimits: [],

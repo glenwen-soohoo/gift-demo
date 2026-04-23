@@ -120,9 +120,11 @@ function GiftRow({ giftItem, onToggleGift, giftModal, setGiftModal }) {
           <div className="col-xs-8 pd-descs">
             <div className="gift-tags">
               <span className={`gift-tag ${giftTypeClass}`}>{tagLabel}</span>
-              <button type="button" className="gift-info-btn" onClick={() => setGiftModal(true)}>
-                活動說明
-              </button>
+              {giftItem.PopupText && (
+                <button type="button" className="gift-info-btn" onClick={() => setGiftModal(true)}>
+                  活動說明
+                </button>
+              )}
             </div>
             <div className="pd-title">{ProductName}</div>
             <div className="pd-spec">
@@ -157,7 +159,9 @@ function GiftRow({ giftItem, onToggleGift, giftModal, setGiftModal }) {
             onClick={() => onToggleGift?.(GiftRuleId)}
             title={IsDeclined ? '加回贈品' : '不要贈品'}
           >
-            {IsDeclined ? '加回贈品' : '不要贈品'}
+            {IsDeclined
+              ? <>加回<wbr />贈品</>
+              : <>不要<wbr />贈品</>}
           </button>
         </div>
       </section>

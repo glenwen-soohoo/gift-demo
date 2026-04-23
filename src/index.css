@@ -143,6 +143,60 @@ footer.gb-footer .bottom {
   display: none !important;
 }
 
+/* 手機版 SA 加購品：2 欄（桌面是 4 欄） */
+@media (max-width: 941px) {
+  .sa-pd-slick-frozen,
+  .sa-pd-slick {
+    grid-template-columns: repeat(2, 1fr) !important;
+    column-gap: 10px !important;
+    row-gap: 14px !important;
+    padding: 0 10px !important;
+  }
+  /* 超過 2 個（桌面可看 4 個）→ 手機版限縮到 4 個避免太長 */
+  .sa-pd-slick-frozen > .col-xs-12:nth-child(n+3),
+  .sa-pd-slick > .col-xs-12:nth-child(n+3) {
+    display: block !important;  /* 覆寫桌面的 nth-child(n+5) 隱藏規則以允許第 3/4 個 */
+  }
+  .sa-pd-slick-frozen > .col-xs-12:nth-child(n+5),
+  .sa-pd-slick > .col-xs-12:nth-child(n+5) {
+    display: none !important;
+  }
+  /* 加購品卡片內部：圖片縮小、字體縮小 */
+  .sa-pd-slick-frozen > .col-xs-12 img,
+  .sa-pd-slick > .col-xs-12 img {
+    width: 100% !important;
+    height: auto;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .sa-pd-slick-frozen .pd-title,
+  .sa-pd-slick .pd-title {
+    font-size: 13px !important;
+    line-height: 1.4;
+    min-height: 4em !important;
+  }
+  .sa-pd-slick-frozen .price-area,
+  .sa-pd-slick .price-area,
+  .sa-pd-slick-frozen .dis-price-area,
+  .sa-pd-slick .dis-price-area {
+    font-size: 13px;
+  }
+  .sa-pd-slick-frozen .buybutton,
+  .sa-pd-slick .buybutton {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+  /* 每樣加購商品至多購買一組 副標手機版縮 */
+  #SA-Area .info_frame-title .sa-title-web { display: none; }
+  #SA-Area .sa-title-mob {
+    display: block !important;
+    text-align: center;
+    color: #5CB0DF;
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+}
+
 /* #pd-area 裡有 float 元素 → clearfix 避免高度塌陷 */
 #pd-area::after {
   content: '';
@@ -157,6 +211,146 @@ footer.gb-footer .bottom {
 #BonusValid,
 #RedPointValid,
 #cart-total_valid-msg { display: none !important; }
+
+/* ═══ RWD：≤941px 手機版商品列二維重組 ═══
+   參考 production mobile 的版型：
+     row 1: [圖片]  [商品名 + 規格]         [刪除]
+     row 2: [圖片跨] [數量+剩餘]            [刪除跨]
+     row 3: [出貨時間 ───────────  單價]
+   用 CSS Grid + display:contents 拆解 field-pd 容器、override Bootstrap float */
+@media (max-width: 941px) {
+  .cartItem-area.pd-mark,
+  .cartItem-area.gift-row {
+    display: grid !important;
+    grid-template-columns: 110px 1fr auto;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "img    info    del"
+      "img    qty     del"
+      "time   time    price";
+    column-gap: 12px;
+    row-gap: 4px;
+    padding: 12px 10px !important;
+    align-items: start;
+  }
+  /* field-pd 拆成 contents，其 img + pd-descs 直接進外層 grid */
+  .cartItem-area .field-pd {
+    display: contents !important;
+  }
+  .cartItem-area .field-pd > .col-xs-4.p-0 {
+    grid-area: img;
+    float: none !important;
+    width: 100px !important;
+    padding: 0 !important;
+    align-self: start;
+  }
+  .cartItem-area .field-pd .pd-descs {
+    grid-area: info;
+    float: none !important;
+    width: auto !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cartItem-area .field-pd img {
+    width: 100px !important;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .cartItem-area .pd-title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: break-word;
+    padding-right: 4px;
+  }
+  /* .pd-spec production CSS 會 absolute 定位到 left:91px，手機版覆寫回 static */
+  .cartItem-area .pd-spec {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    font-size: 13px !important;
+    color: #666;
+    text-align: left !important;
+  }
+  /* 數量欄放第 2 row 中間（與圖片並排）*/
+  .cartItem-area .field-amt {
+    grid-area: qty;
+    float: none !important;
+    width: auto !important;
+    padding: 0 !important;
+    top: auto !important;
+    position: static !important;
+    display: flex !important;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+  .cartItem-area .field-amt select {
+    width: 60px !important;
+    margin: 0 !important;
+    display: inline-block !important;
+  }
+  .cartItem-area .field-amt .amt-alert {
+    color: #dc4e43;
+    font-size: 13px;
+    margin: 0;
+    position: static !important;
+    top: auto !important;
+  }
+  /* 出貨時間：row 3 左 */
+  .cartItem-area .field-order-time {
+    grid-area: time;
+    float: none !important;
+    width: auto !important;
+    padding: 8px 0 0 !important;
+    top: auto !important;
+    position: static !important;
+    font-size: 13px;
+    color: #888;
+    text-align: left !important;
+    border-top: 1px solid #f0f0f0;
+  }
+  /* 單價：row 3 右 */
+  .cartItem-area .field-price {
+    grid-area: price;
+    float: none !important;
+    width: auto !important;
+    padding: 8px 0 0 !important;
+    top: auto !important;
+    position: static !important;
+    text-align: right !important;
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    border-top: 1px solid #f0f0f0;
+  }
+  /* 小計欄手機版隱藏（與單價重複）*/
+  .cartItem-area .field-pd-total {
+    display: none !important;
+  }
+  /* 刪除 icon：row 1 右上，跨 row 2 */
+  .cartItem-area .field-delete {
+    grid-area: del;
+    float: none !important;
+    width: auto !important;
+    padding: 0 !important;
+    top: auto !important;
+    position: static !important;
+    align-self: start;
+  }
+  .cartItem-area .field-delete .fa-trash {
+    font-size: 20px !important;
+    color: #5CB0DF;
+  }
+  /* 欄位頂線：row 1 的 top-field 標題列（桌面用）手機版隱藏 */
+  .top-field {
+    display: none !important;
+  }
+}
 
 /* ═══ 贈品列樣式 ═══ */
 .cartItem-area.gift-row {
@@ -231,19 +425,73 @@ footer.gb-footer .bottom {
 .gift-hint-text strong { color: #b91c1c; font-size: 15px; }
 .gift-hint-name { color: #78350f; }
 
+/* ≤941px 手機版：滿額贈提示列文字縮排、字級同購物車列 */
+@media (max-width: 941px) {
+  .gift-hint-row {
+    padding: 8px 12px !important;
+    font-size: 13px;
+  }
+  .gift-hint-text strong { font-size: 14px; }
+}
+
 .gift-toggle-btn {
-  padding: 5px 10px;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 4px 6px;
   border-radius: 4px;
   font-size: 12px; font-family: inherit; cursor: pointer;
   border: 1px solid;
   background: #fff;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;      /* CJK 詞彙不被拆開 */
+  line-height: 1.3;
+  text-align: center;
+  box-sizing: border-box;
   transition: all .15s;
 }
 .gift-toggle-btn.decline { color: #6b7280; border-color: #9ca3af; }
 .gift-toggle-btn.decline:hover { background: #f3f4f6; border-color: #6b7280; }
 .gift-toggle-btn.restore { color: #fff; background: #22c55e; border-color: #22c55e; }
 .gift-toggle-btn.restore:hover { background: #16a34a; }
+
+/* ═══ 手機版贈品列專屬微調（沿用上方 cartItem-area 的 grid 重組） ═══ */
+@media (max-width: 941px) {
+  /* 贈品標籤區：在 info 區第一行，允許換行 */
+  .cartItem-area.gift-row .gift-tags {
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .cartItem-area.gift-row .gift-tag {
+    padding: 2px 8px;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+  .cartItem-area.gift-row .gift-info-btn {
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+  /* 贈品數量：手機版隱藏 info 區的數量欄（「1」），直接顯示在底部 price 區 */
+  .cartItem-area.gift-row .field-amt {
+    display: none !important;
+  }
+  /* 「贈品 $0」一行顯示在 bottom row price 位置 */
+  .cartItem-area.gift-row .field-price {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #666 !important;
+  }
+  /* 不要贈品按鈕：覆寫桌機 100% 寬度，手機版縮成單行 */
+  .cartItem-area.gift-row .gift-toggle-btn {
+    display: inline-block;
+    width: auto;
+    max-width: none;
+    padding: 4px 8px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+}
 
 /* ═══ Gift Info Modal ═══ */
 .gift-modal-overlay {
