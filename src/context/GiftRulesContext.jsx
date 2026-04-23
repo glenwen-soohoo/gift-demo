@@ -3,7 +3,7 @@ import { initialGiftRules, GIFT_RULE_STATE } from '../data/giftRules'
 
 const LS_KEY = 'gift-demo:giftRules'
 const LS_VERSION = 'gift-demo:giftRules:v'
-const CURRENT_VERSION = 2    // v2 = Phase D PascalCase
+const CURRENT_VERSION = 3    // v3 = 修正 v2 migration 把 UseProductIds/UseSpecIds 誤設為 false
 
 const GiftRulesContext = createContext(null)
 
@@ -48,8 +48,12 @@ function migrateLegacyRule(old) {
     ThresholdAmount: old.thresholdAmount ?? old.ThresholdAmount ?? 0,
     HintAmount: old.hintAmount ?? old.HintAmount ?? 0,
     ThresholdQuantity: old.thresholdQuantity ?? old.ThresholdQuantity ?? 0,
-    UseProductIds: old.useProductIds ?? old.UseProductIds ?? false,
-    UseSpecIds: old.useSpecIds ?? old.UseSpecIds ?? false,
+    // v1/v2 → v3：舊資料沒有 useProductIds 欄位、或 v2 migration 誤把它設為 false；
+    // 這裡永遠優先推斷「有 target → Use=true」，只有當 flag 明確為 true 才保留
+    UseProductIds: (old.useProductIds === true) || (old.UseProductIds === true)
+      || ((old.targetProductIds ?? old.TargetProductIds ?? []).length > 0),
+    UseSpecIds: (old.useSpecIds === true) || (old.UseSpecIds === true)
+      || ((old.targetSpecIds ?? old.TargetSpecIds ?? []).length > 0),
     TargetProductIds: old.targetProductIds ?? old.TargetProductIds ?? [],
     TargetSpecIds: old.targetSpecIds ?? old.TargetSpecIds ?? [],
     GiftQuantity: old.giftQuantity ?? old.GiftQuantity ?? 1,
