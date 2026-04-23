@@ -2,10 +2,16 @@ import TopField from './TopField'
 import CartItemRow from './CartItemRow'
 import CartOrderTotal from './CartOrderTotal'
 import SAArea from './SAArea'
+import GiftHintRow from './GiftHintRow'
 
 // 一整個分類（冷凍超市 / 粥寶寶 …）：
-// top-field + categorey-title + 溫層分組 + 商品列 + 小計+運費 + 超值加購
-export default function OrderCategory({ category, items, saItems, onChangeQty, onDelete, onAddSa }) {
+// top-field + categorey-title + 溫層分組 + 商品列 + 贈品/提示 + 小計+運費 + 超值加購
+export default function OrderCategory({
+  category, items, saItems,
+  giftEvals = [],        // 此分類對應的贈品評估結果
+  onChangeQty, onDelete, onAddSa, onToggleGift,
+}) {
+  // 贈品不算進小計；但 buy_to_get target 算（米餅就是一般商品，要計入小計）
   const subtotal = items.reduce((s, it) => s + it.price * it.quantity, 0)
 
   // 依溫層分組
@@ -16,6 +22,13 @@ export default function OrderCategory({ category, items, saItems, onChangeQty, o
     return acc
   }, {})
 
+  const tempKeys = Object.keys(groups)
+  const lastTemp = tempKeys[tempKeys.length - 1]
+
+  // 只在最後一個溫層組末尾加贈品/提示列
+  const triggeredGifts = giftEvals.filter(g => g.state === 'triggered')
+  const hintGifts      = giftEvals.filter(g => g.state === 'hint')
+
   return (
     <>
       <TopField />
@@ -25,7 +38,7 @@ export default function OrderCategory({ category, items, saItems, onChangeQty, o
         <span>{category.title}</span>
       </section>
 
-      {Object.entries(groups).map(([tempLabel, tempItems]) => (
+      {tempKeys.map(tempLabel => (
         <div key={tempLabel}>
           <div
             className="col-xs-12 order-field-basc"
@@ -33,7 +46,7 @@ export default function OrderCategory({ category, items, saItems, onChangeQty, o
           >
             <span>{tempLabel}</span>
           </div>
-          {tempItems.map(item => (
+          {groups[tempLabel].map(item => (
             <CartItemRow
               key={item.uid}
               item={item}
@@ -41,6 +54,23 @@ export default function OrderCategory({ category, items, saItems, onChangeQty, o
               onDelete={onDelete}
             />
           ))}
+
+          {/* 觸發的贈品列 + 提示列 — 掛在最後一個溫層組的最下方 */}
+          {tempLabel === lastTemp && (
+            <>
+              {triggeredGifts.map(ev => (
+                <CartItemRow
+                  key={`gift-${ev.rule.id}`}
+                  item={{ isGift: true }}
+                  giftEval={ev}
+                  onToggleGift={onToggleGift}
+                />
+              ))}
+              {hintGifts.map(ev => (
+                <GiftHintRow key={`hint-${ev.rule.id}`} evaluated={ev} />
+              ))}
+            </>
+          )}
         </div>
       ))}
 

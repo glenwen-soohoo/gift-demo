@@ -22,6 +22,7 @@ const EMPTY_RULE = {
   targetProductIds: [],
   targetSpecIds: [],
   giftQuantity: 1,
+  repeatable: false,   // 可重複贈送，預設否
   popupText: '',
   stock: 0,
   isListed: true,
@@ -253,6 +254,33 @@ export default function AdminGiftEdit() {
                 value={form.giftQuantity}
                 onChange={e => update('giftQuantity', Number(e.target.value))}
               />
+            </div>
+
+            <div className="form-row">
+              <label>可重複贈送：</label>
+              <div className="radio-group">
+                <label className="radio">
+                  <input
+                    type="radio"
+                    checked={form.repeatable === false}
+                    onChange={() => update('repeatable', false)}
+                  />
+                  <span>否</span>
+                </label>
+                <label className="radio">
+                  <input
+                    type="radio"
+                    checked={form.repeatable === true}
+                    onChange={() => update('repeatable', true)}
+                  />
+                  <span>是</span>
+                </label>
+              </div>
+              <span className="hint">
+                {form.ruleType === 'threshold'
+                  ? '例如設定「滿 $1000 送 1 個」，選「是」則滿 $2000 送 2 個、$3000 送 3 個，以此類推。'
+                  : '例如設定「買 3 件送 1 個」，選「是」則買 6 件送 2 個、9 件送 3 個，以此類推。'}
+              </span>
             </div>
 
             <div className="form-row">

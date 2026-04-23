@@ -94,16 +94,15 @@ export default function AdminGiftList() {
         <table className="gift-table">
           <thead>
             <tr>
-              <th>規格ID</th>
-              <th>產品ID</th>
+              <th>ID</th>
               <th>封面照</th>
               <th>產品名稱</th>
               <th>產品規格</th>
-              <th>贈送條件</th>
               <th>上架</th>
+              <th>贈送條件</th>
+              <th>重複贈送</th>
               <th>剩餘數量</th>
-              <th>產線</th>
-              <th>溫層</th>
+              <th>產線/溫層</th>
               <th>限購規則</th>
               <th>操作</th>
             </tr>
@@ -115,24 +114,31 @@ export default function AdminGiftList() {
               const isConfirming = confirmId === r.id
               return (
                 <tr key={r.id}>
-                  <td>{r.id}</td>
-                  <td>{r.productId}</td>
+                  <td className="cell-id">
+                    <div>{r.productId}</div>
+                    <div className="cell-id-sub">{r.id}</div>
+                  </td>
                   <td>
                     <img src={r.image} alt="" className="gift-thumb" />
                   </td>
                   <td className="cell-name">{r.productName}</td>
                   <td>{r.productSpec}</td>
-                  <td className="cell-cond">{renderCondition(r)}</td>
                   <td className="cell-center">
                     {r.isListed
                       ? <span className="ck-on" onClick={() => toggleListed(r.id)}>✅</span>
                       : <span className="ck-off" onClick={() => toggleListed(r.id)}>❌</span>}
                   </td>
+                  <td className="cell-cond">{renderCondition(r)}</td>
+                  <td className="cell-center">
+                    {r.repeatable ? <span style={{ color: '#22c55e', fontWeight: 600 }}>是</span> : <span style={{ color: '#999' }}>否</span>}
+                  </td>
                   <td className={`cell-center ${r.stock === 0 ? 'stock-zero' : ''}`}>
                     {r.stock === 0 ? <>❌&nbsp;0</> : r.stock}
                   </td>
-                  <td>{pl?.label}</td>
-                  <td>{temp?.label}</td>
+                  <td className="cell-pl-temp">
+                    <div>{pl?.label}</div>
+                    <div className="cell-sub">{temp?.label}</div>
+                  </td>
                   <td>
                     {(r.membershipLimit ?? []).length === 0
                       ? '無'
@@ -152,7 +158,7 @@ export default function AdminGiftList() {
               )
             })}
             {filtered.length === 0 && (
-              <tr><td colSpan={12} style={{ textAlign: 'center', padding: 24, color: '#999' }}>沒有符合的資料</td></tr>
+              <tr><td colSpan={11} style={{ textAlign: 'center', padding: 24, color: '#999' }}>沒有符合的資料</td></tr>
             )}
           </tbody>
         </table>

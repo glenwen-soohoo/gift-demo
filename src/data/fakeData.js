@@ -83,7 +83,71 @@ export const initialCart = [
         maxQty: 20,
         temperatureLabel: '冷凍',
       },
+      // ── 【限時免運】綜合米餅六入組 × 2（觸發買就送；加上燉飯組合後也觸發滿額贈）──
+      {
+        uid: 'b-75762-180001',
+        pid: 75762,
+        pdid: 180001,
+        name: '【限時免運】綜合米餅六入組',
+        spec: '1 組',
+        specSuffix: '(香蕉、鳳梨、草莓米餅 3 口味共 6 包，約 50±3 克/包)',
+        image: 'https://greenboxcdn.azureedge.net/upload/Album_3035/File/202604021019081.jpg',
+        deliveryTime: '2026/04/22 ~',
+        price: 900,
+        quantity: 2,
+        maxQty: 10,
+        temperatureLabel: '冷凍',
+      },
     ],
+  },
+]
+
+// ─── 贈品規則（前台觸發依據）──────
+// threshold: 以 categoryKey 的非贈品小計 vs thresholdAmount / hintAmount 判斷
+// buy_to_get: 以購物車中 targetPid 的總件數 vs thresholdQuantity 判斷
+export const GIFT_RULES = [
+  {
+    id: 'g-threshold-保冷袋',
+    giftType: 'threshold',
+    categoryKey: 'babyfood',            // 粥寶寶/綠時光 分類小計
+    thresholdAmount: 2000,
+    hintAmount: 1800,
+    repeatable: false,                  // 滿額贈不可重複
+    popupText:
+      '粥寶寶專區消費滿 $2,000 元，即可獲得此贈品一份。\n限 VIP 等級（含）以上會員。\n每筆訂單限獲一份，數量有限，送完為止。',
+    gift: {
+      pid: 69928,
+      pdid: 163483,
+      name: '粥寶寶多功能保冷袋',
+      spec: '1 個',
+      specSuffix: '(贈品)',
+      image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
+      deliveryTime: '2026/04/22 ~',
+      quantity: 1,
+      temperatureLabel: '冷凍',
+    },
+  },
+  {
+    id: 'g-buy-集點卡',
+    giftType: 'buy_to_get',
+    categoryKey: 'babyfood',
+    targetPid: 75762,                   // 【限時免運】綜合米餅六入組
+    targetName: '綜合米餅六入組',
+    thresholdQuantity: 1,
+    repeatable: true,                   // 買就送「可重複贈送」：買 1 件送 1 張、買 2 件送 2 張…
+    popupText:
+      '購買【綜合米餅六入組】每 1 件（含）以上，即可獲得此贈品一份。\n限 VIP 等級（含）以上會員。\n可重複贈送：購買越多、集點卡送越多！',
+    gift: {
+      pid: 69929,
+      pdid: 163484,
+      name: '粥寶寶集點趣｜集點卡，米餅肉鬆適用',
+      spec: '1 張',
+      specSuffix: '(贈品)',
+      image: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
+      deliveryTime: '2026/04/22 ~',
+      quantity: 1,
+      temperatureLabel: '冷凍',
+    },
   },
 ]
 

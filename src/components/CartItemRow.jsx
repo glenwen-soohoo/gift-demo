@@ -1,5 +1,21 @@
-// 單一購物車商品列 — 完全對齊線上 .cartItem-area 結構
-export default function CartItemRow({ item, onChangeQty, onDelete }) {
+import { useState } from 'react'
+import GiftInfoModal from './GiftInfoModal'
+
+// 單一購物車商品列 — 支援兩種模式：一般商品 / 贈品
+export default function CartItemRow({ item, onChangeQty, onDelete, giftEval, onToggleGift }) {
+  const [giftModal, setGiftModal] = useState(false)
+
+  if (item.isGift) {
+    return (
+      <GiftRow
+        giftEval={giftEval}
+        onToggleGift={onToggleGift}
+        giftModal={giftModal}
+        setGiftModal={setGiftModal}
+      />
+    )
+  }
+
   return (
     <section
       className="col-xs-12 order-field-basc cartItem-area pd-mark"
@@ -24,7 +40,7 @@ export default function CartItemRow({ item, onChangeQty, onDelete }) {
             )}
           </div>
           <div className="pd-spec">
-            規格：{item.spec}
+            規格:{item.spec}
             {item.specSuffix && <span> {item.specSuffix}</span>}
           </div>
         </div>
@@ -71,5 +87,74 @@ export default function CartItemRow({ item, onChangeQty, onDelete }) {
         </a>
       </div>
     </section>
+  )
+}
+
+// ─── 贈品列 ───
+function GiftRow({ giftEval, onToggleGift, giftModal, setGiftModal }) {
+  const { rule, declined, qty: evalQty, multiplier } = giftEval
+  const gift = rule.gift
+  const qty = evalQty ?? gift.quantity
+
+  return (
+    <>
+      <section
+        className={`col-xs-12 order-field-basc cartItem-area gift-row ${rule.giftType} ${declined ? 'declined' : ''}`}
+        data-pid={gift.pid}
+        data-pdid={gift.pdid}
+      >
+        <div className="base-field field-pd col-xs-4">
+          <div id="pd-img-fillPaymentInfo" className="col-xs-4 p-0">
+            <img src={gift.image} alt={gift.name} />
+          </div>
+          <div className="col-xs-8 pd-descs">
+            <div className="gift-tags">
+              <span className={`gift-tag ${rule.giftType}`}>
+                {rule.giftType === 'threshold' ? '滿額贈' : '買就送'}
+              </span>
+              <button type="button" className="gift-info-btn" onClick={() => setGiftModal(true)}>
+                活動說明
+              </button>
+            </div>
+            <div className="pd-title">{gift.name}</div>
+            <div className="pd-spec">
+              規格:{gift.spec}
+              {gift.specSuffix && <span> {gift.specSuffix}</span>}
+            </div>
+          </div>
+        </div>
+
+        <div className="base-field field-order-time col-xs-2">
+          <span>{gift.deliveryTime}</span>
+        </div>
+
+        <div className="base-field field-price col-xs-1 gift-price">
+          贈品
+        </div>
+
+        <div className="base-field field-amt col-xs-2">
+          <div className="gift-qty">{declined ? 0 : qty}</div>
+        </div>
+
+        <div className="base-field field-pd-total col-xs-2">
+          <div className="order-p-unit order-content-price gift-total">
+            $0
+          </div>
+        </div>
+
+        <div className="base-field field-delete col-xs-1">
+          <button
+            type="button"
+            className={`gift-toggle-btn ${declined ? 'restore' : 'decline'}`}
+            onClick={() => onToggleGift?.(rule.id)}
+            title={declined ? '加回贈品' : '不要贈品'}
+          >
+            {declined ? '加回贈品' : '不要贈品'}
+          </button>
+        </div>
+      </section>
+
+      <GiftInfoModal open={giftModal} onClose={() => setGiftModal(false)} rule={rule} />
+    </>
   )
 }

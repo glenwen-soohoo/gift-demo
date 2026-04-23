@@ -237,6 +237,12 @@
 .gift-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; }
 .gift-table .ck-on, .gift-table .ck-off { cursor: pointer; font-size: 18px; }
 .gift-table .stock-zero { color: #dc4e43; }
+
+/* 合併欄位：產品ID/規格ID、產線/溫層 */
+.gift-table .cell-id { line-height: 1.5; }
+.gift-table .cell-id-sub { color: #888; font-size: 12px; }
+.gift-table .cell-pl-temp { line-height: 1.5; }
+.gift-table .cell-pl-temp .cell-sub { color: #888; font-size: 12px; }
 .gift-table .cond-unset {
   display: inline-block;
   padding: 2px 10px;
