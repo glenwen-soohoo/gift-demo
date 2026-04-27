@@ -1,5 +1,8 @@
 import { useParams } from 'react-router-dom'
 import { useProducts } from '../../context/ProductContext'
+import { useGiftRules } from '../../context/GiftRulesContext'
+import { ProductCategoryEnum, TemperatureLayer } from '../../data/fakeData'
+import { GIFT_RULE_STATE } from '../../data/giftRules'
 
 // 後台「產品編輯 - 規格設定」頁
 // 參照 https://greenbox.tw/GoX/Product/Edit18/:id 下載的 HTML 實際 DOM 重建
@@ -14,10 +17,62 @@ export default function AdminProductEdit() {
   const { id } = useParams()
   const productId = Number(id ?? 69928)
   const { products, updateSpec, addSpec, removeSpec } = useProducts()
+  const { rules, addRule, deleteRule } = useGiftRules()
   const product = products[productId]
 
   if (!product) {
     return <div style={{ padding: 24 }}>找不到產品 #{productId}。</div>
+  }
+
+  // ─── 設為贈品 lifecycle（對齊 production fruit_web 設計）──
+  // 勾選 IsGift=true  → 自動建立 draft GiftRule（RuleType=null, State=草稿）
+  // 取消勾選 IsGift=false → 直接刪除對應 GiftRule（不論狀態），贈品列表會同步消失
+  //   設計意圖：「贈品」是從產品規格勾選來的，產品端是 single source of truth；
+  //   不該由贈品列表反向阻擋產品端取消勾選。
+  const handleSpecChange = (spec, patch) => {
+    // 偵測 IsGift 狀態變化
+    if ('IsGift' in patch && patch.IsGift !== spec.IsGift) {
+      const turningOn = patch.IsGift === true
+      const existingRule = rules.find(r => r.Id === spec.Id)
+
+      if (turningOn) {
+        // 勾選贈品：建立 draft GiftRule（若還沒有）
+        if (!existingRule) {
+          addRule({
+            Id: spec.Id,                 // demo: rule.Id === ProductDetailId
+            ProductId: productId,
+            ProductName: product.Name,
+            ProductSpec: spec.Detail || '贈品',
+            SpecSuffix: '',
+            Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
+            DeliveryTime: '',
+            RuleType: null,              // 未設定贈送條件
+            ProductionLine: product.ProductionLine,
+            TemperatureLayer: product.TemperatureLayer,
+            ThresholdAmount: 0,
+            HintAmount: 0,
+            ThresholdQuantity: 0,
+            UseProductIds: false,
+            UseSpecIds: false,
+            TargetProductIds: [],
+            TargetSpecIds: [],
+            GiftQuantity: 1,
+            Repeatable: false,
+            PopupText: '',
+            MembershipLimits: [],
+            State: GIFT_RULE_STATE.草稿,
+            StartTime: null,
+            EndTime: null,
+          })
+        }
+      } else {
+        // 取消贈品：直接刪除對應規則（不論草稿/上架/下架狀態）
+        if (existingRule) {
+          deleteRule(existingRule.Id)
+        }
+      }
+    }
+    updateSpec(productId, spec.Id, patch)
   }
 
   return (
@@ -42,7 +97,7 @@ export default function AdminProductEdit() {
               key={spec.Id}
               spec={spec}
               index={idx}
-              onChange={(patch) => updateSpec(productId, spec.Id, patch)}
+              onChange={(patch) => handleSpecChange(spec, patch)}
               onRemove={() => removeSpec(productId, spec.Id)}
             />
           ))}
@@ -220,12 +275,6 @@ function SpecRow({ spec, index, onChange, onRemove }) {
           onClick={onRemove}
         >刪除此規格</button>
       </div>
-
-      {locked && (
-        <div className="pd-gift-hint">
-          ⚠️ 此規格已設為贈品，「特殊商品／貨到付款／訂閱制／滿額限購／原價／優惠價」等互斥設定已自動停用
-        </div>
-      )}
     </div>
   )
 }

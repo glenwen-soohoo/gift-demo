@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useGiftRules } from '../context/GiftRulesContext'
 import { GIFT_RULE_STATE } from '../data/giftRules'
-import CartSidebarGiftNotice from '../components/CartSidebarGiftNotice'
+import { initialCart } from '../data/fakeData'
+import CartSidebar from '../components/CartSidebar'
 
 // Demo 入口：選前台或後台
 export default function Home() {
@@ -9,6 +10,9 @@ export default function Home() {
 
   // 對齊 fruit_web 的 `HasActiveGiftRules` 旗標（單純判斷有無上架中規則）
   const hasActiveGiftRules = rules.some(r => r.State === GIFT_RULE_STATE.上架中)
+
+  // 從 initialCart 取樣 3 筆品項用來示範側邊購物車長相
+  const sidebarItems = initialCart.flatMap(c => c.Items).slice(0, 3)
 
   return (
     <div className="home-page">
@@ -51,26 +55,24 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* 4.5 決策示範：側欄 mini cart 的提示文字 */}
+        {/* 側邊購物車 1:1 復刻（對齊 4.5 決策：側欄不計算贈品） */}
         <div className="home-sidebar-demo">
           <div className="home-sidebar-demo-title">
-            🛒 側欄購物車提示（示範）
+            🛒 側邊購物車示範（1:1 復刻 greenbox.tw sidebar cart）
             <span className="home-sidebar-demo-sub">
-              （對齊 [重構計畫 §4.5]：側欄不計算贈品，由結帳頁觸發）
+              （側欄不計算贈品，靠底部提示文字告訴客人到結帳頁觸發）
             </span>
           </div>
-          <div className="home-sidebar-mock">
-            <div className="home-sidebar-mock-items">
-              <div className="home-sidebar-mock-item">商品 A × 1</div>
-              <div className="home-sidebar-mock-item">商品 B × 2</div>
-              <div className="home-sidebar-mock-item">商品 C × 1</div>
-            </div>
-            <CartSidebarGiftNotice hasActiveGiftRules={hasActiveGiftRules} />
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <CartSidebar
+              items={sidebarItems}
+              hasActiveGiftRules={hasActiveGiftRules}
+            />
           </div>
           <div className="home-sidebar-demo-note">
             {hasActiveGiftRules
-              ? '↑ 目前 context 有上架中的贈品規則，提示文字顯示'
-              : '↑ 目前沒有任何上架中的贈品規則，提示文字隱藏'}
+              ? '↑ 目前 context 有上架中贈品規則，底部顯示提示文字'
+              : '↑ 目前無上架中贈品規則，提示文字隱藏'}
           </div>
         </div>
 

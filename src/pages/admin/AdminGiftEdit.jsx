@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useGiftRules } from '../../context/GiftRulesContext'
+import { useProducts } from '../../context/ProductContext'
+import { findSpecById } from '../../data/productSpecs'
 import Switch from '../../components/Switch'
 import {
   PRODUCTION_LINES, TEMPERATURES, RULE_TYPE, GIFT_RULE_STATE,
@@ -9,6 +11,7 @@ import {
 import { ProductCategoryEnum, TemperatureLayer } from '../../data/fakeData'
 
 // form state 對齊 GiftRuleEditViewModel（fruit_web 未來接收的 ViewModel）
+// IsListed / Stock 不在 form state（讀寫都走 ProductContext，spec 是單一來源）
 const EMPTY_RULE = {
   ProductId: '',
   ProductName: '',
@@ -29,8 +32,6 @@ const EMPTY_RULE = {
   GiftQuantity: 1,
   Repeatable: false,
   PopupText: '',
-  Stock: 0,
-  IsListed: true,
   MembershipLimits: [],
   State: GIFT_RULE_STATE.上架中,
 }
@@ -39,6 +40,7 @@ export default function AdminGiftEdit() {
   const { id } = useParams()
   const nav = useNavigate()
   const { rules, addRule, updateRule, toggleListed, updateStock } = useGiftRules()
+  const { products, updateSpec } = useProducts()
   const isNew = !id || id === 'new'
 
   const [form, setForm] = useState(EMPTY_RULE)
@@ -48,15 +50,32 @@ export default function AdminGiftEdit() {
   const [editingStock, setEditingStock] = useState(false)
   const [stockDraft, setStockDraft] = useState('')
 
+  // ─── 從 ProductContext 取贈品本體的 spec（IsListed = spec.Display, Stock = spec.Stock）──
+  const ruleId = isNew ? null : Number(id)
+  const meta = useMemo(() => {
+    if (ruleId == null) return { IsListed: true, Stock: 0, Spec: null, Product: null }
+    const found = findSpecById(products, ruleId)
+    if (!found) return { IsListed: false, Stock: 0, Spec: null, Product: null }
+    return {
+      IsListed: found.spec.Display === true,
+      Stock: found.spec.Stock ?? 0,
+      Spec: found.spec,
+      Product: found.product,
+    }
+  }, [ruleId, products])
+
   const startStockEdit = () => {
-    setStockDraft(String(form.Stock ?? 0))
+    setStockDraft(String(meta.Stock))
     setEditingStock(true)
   }
   const commitStock = () => {
     const n = Number(stockDraft)
     if (Number.isNaN(n) || n < 0) { setEditingStock(false); return }
-    if (!isNew) updateStock(Number(id), n)
-    setForm(prev => ({ ...prev, Stock: n }))
+    if (!isNew) {
+      updateStock(ruleId, n)   // 走 ProductContext.updateSpec → 寫進 ProductDetail.Stock
+    } else if (meta.Spec && meta.Product) {
+      updateSpec(meta.Product.Id, meta.Spec.Id, { Stock: n })
+    }
     setEditingStock(false)
   }
   const cancelStockEdit = () => setEditingStock(false)
@@ -73,11 +92,14 @@ export default function AdminGiftEdit() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isNew])
 
-  // 上下架 Switch：直接切換 context 的 IsListed（即時生效），同時同步 form 狀態
+  // 上下架 Switch：寫進 ProductDetail.Display（即時生效，跟產品管理頁共用同一個欄位）
   const handleToggleListed = (next) => {
-    if (!isNew) toggleListed(Number(id))
-    update('IsListed', next)
-    update('State', next ? GIFT_RULE_STATE.上架中 : GIFT_RULE_STATE.下架)
+    if (!isNew) {
+      toggleListed(ruleId)      // 內部會 updateSpec(Display) + 更新 rule.State
+    } else if (meta.Spec && meta.Product) {
+      updateSpec(meta.Product.Id, meta.Spec.Id, { Display: next })
+      update('State', next ? GIFT_RULE_STATE.上架中 : GIFT_RULE_STATE.下架)
+    }
   }
 
   const update = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
@@ -160,12 +182,12 @@ export default function AdminGiftEdit() {
                         </span>
                       ) : (
                         <span className="stock-cell">
-                          <span>{form.Stock}</span>
+                          <span>{meta.Stock}</span>
                           <button
                             type="button"
                             className="icon-btn-pencil"
                             onClick={startStockEdit}
-                            title="修改庫存"
+                            title="修改庫存（共用 ProductDetail.Stock，產品管理頁也會反映）"
                           >
                             <i className="fa fa-pencil" aria-hidden="true" />
                           </button>
@@ -177,11 +199,11 @@ export default function AdminGiftEdit() {
                     <span className="info-label">上架狀態：</span>
                     <span className="info-value">
                       <Switch
-                        checked={!!form.IsListed}
+                        checked={meta.IsListed}
                         onChange={handleToggleListed}
                       />
                       <span className="switch-label-inline">
-                        {form.IsListed ? '上架中' : '已下架'}
+                        {meta.IsListed ? '上架中' : '已下架'}
                       </span>
                     </span>
                   </div>
@@ -381,14 +403,6 @@ export default function AdminGiftEdit() {
                     value={form.ProductId}
                     onChange={e => update('ProductId', Number(e.target.value))}
                     placeholder="贈品所屬的產品 ID"
-                  />
-                </div>
-                <div className="form-row">
-                  <label>庫存：</label>
-                  <input
-                    type="number" className="form-input"
-                    value={form.Stock}
-                    onChange={e => update('Stock', Number(e.target.value))}
                   />
                 </div>
                 <div className="form-row">

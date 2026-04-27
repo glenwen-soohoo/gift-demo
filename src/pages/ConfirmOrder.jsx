@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { CATEGORIES, initialCart, SA_AREAS } from '../data/fakeData'
 import { useGiftRules } from '../context/GiftRulesContext'
+import { useProducts } from '../context/ProductContext'
+import { findSpecById } from '../data/productSpecs'
 import { evaluateGifts } from '../utils/evaluateGifts'
 import OrderCategory from '../components/OrderCategory'
 import TotalBar from '../components/TotalBar'
@@ -8,6 +10,7 @@ import TotalBar from '../components/TotalBar'
 export default function ConfirmOrder() {
   const [cart, setCart] = useState(initialCart)
   const { rules } = useGiftRules()
+  const { products } = useProducts()
 
   // 客人按「不要贈品」的 GiftRuleId 集合
   const [declinedGiftRuleIds, setDeclinedGiftRuleIds] = useState(() => new Set())
@@ -71,15 +74,20 @@ export default function ConfirmOrder() {
     }))
   }
 
-  // 贈品狀態機 B：每次 cart / declined / rules 變動就重算
+  // 贈品狀態機 B：每次 cart / declined / rules / products 變動就重算
   const giftResult = useMemo(() => {
-    // 扁平化 cart items
     const allItems = cart.flatMap(c => c.Items)
-    return evaluateGifts(allItems, rules, declinedGiftRuleIds, {
+    // 過濾掉「贈品本體下架」(spec.Display=false) 的規則
+    // production 對齊：贈品商品本身下架的話，即使規則上架也不能觸發
+    const activeRules = rules.filter(r => {
+      const found = findSpecById(products, r.Id)
+      return found?.spec.Display === true
+    })
+    return evaluateGifts(allItems, activeRules, declinedGiftRuleIds, {
       VipLevel: 'VIP',         // demo 假設當前使用者是 VIP
       IsFirstOrder: true,      // demo 假設為首購，讓集點卡規則觸發
     })
-  }, [cart, rules, declinedGiftRuleIds])
+  }, [cart, rules, products, declinedGiftRuleIds])
 
   // 總金額（贈品不計入）
   const total = cart.reduce((s, cat) =>

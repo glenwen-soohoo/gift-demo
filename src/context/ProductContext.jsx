@@ -4,7 +4,10 @@ import { ProductCategoryEnum, TemperatureLayer } from '../data/fakeData'
 
 const LS_KEY = 'gift-demo:products'
 const LS_VERSION = 'gift-demo:products:v'
-const CURRENT_VERSION = 2     // v2 = Phase D PascalCase
+const CURRENT_VERSION = 4
+// v3 = 新增贈品產品讓所有 GiftRule 的對應 ProductDetail 都存在
+// v4 = 確認所有 DEMO_PRODUCTS 內建產品都存在於 LS（避免「中間版本 v3 漏加產品」的殘留）
+//      User 自己編輯的產品保留不動，內建產品如果存在 user LS 也保留 user 編輯
 
 const ProductContext = createContext(null)
 
@@ -73,11 +76,21 @@ function loadProducts() {
     const version = Number(localStorage.getItem(LS_VERSION) || '1')
     if (version >= CURRENT_VERSION) return parsed
 
-    const migrated = migrateLegacyProducts(parsed)
+    // 1) 先把舊資料 migrate 成 PascalCase
+    let migrated = (version < 2) ? migrateLegacyProducts(parsed) : parsed
+
+    // 2) 補上 DEMO_PRODUCTS 內所有缺少的內建產品（user 既有產品保留）
+    //    特別針對「user 在中間版本 v3 拿到不完整 DEMO_PRODUCTS」的情況再跑一次
+    for (const [pid, defaultProduct] of Object.entries(DEMO_PRODUCTS)) {
+      if (!migrated[pid]) {
+        migrated[pid] = defaultProduct
+      }
+    }
+
     localStorage.setItem(LS_KEY, JSON.stringify(migrated))
     localStorage.setItem(LS_VERSION, String(CURRENT_VERSION))
     // eslint-disable-next-line no-console
-    console.info('[gift-demo] migrated products from v1 (camelCase) → v2 (PascalCase)')
+    console.info('[gift-demo] migrated products → v4 (補齊所有內建贈品產品)')
     return migrated
   } catch {
     return DEMO_PRODUCTS

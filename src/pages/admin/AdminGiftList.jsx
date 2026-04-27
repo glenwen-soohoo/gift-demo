@@ -1,13 +1,30 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useGiftRules } from '../../context/GiftRulesContext'
+import { useProducts } from '../../context/ProductContext'
+import { findSpecById } from '../../data/productSpecs'
 import Switch from '../../components/Switch'
 import { PRODUCTION_LINES, TEMPERATURES } from '../../data/giftRules'
 
 export default function AdminGiftList() {
-  const { rules, toggleListed, deleteRule, updateStock } = useGiftRules()
+  // 注意：贈品列表不提供「刪除」入口，避免和「規格刪除」混淆。
+  //   贈品的本質是「某規格被勾選為贈品」，要取消請去產品編輯頁取消勾選「設為贈品」，
+  //   贈品列表會同步消失（產品端是 single source of truth）
+  const { rules, toggleListed, updateStock } = useGiftRules()
+  const { products } = useProducts()
   const [editingStockId, setEditingStockId] = useState(null)
   const [stockDraft, setStockDraft] = useState('')
+
+  // ─── 把 rule 跟 ProductDetail join 起來（IsListed / Stock 來自 spec.Display / spec.Stock）──
+  // production 對齊：贈品管理頁顯示的「上架」「庫存」就是直接讀產品規格表
+  const enrichedRules = useMemo(() => rules.map(r => {
+    const found = findSpecById(products, r.Id)
+    return {
+      ...r,
+      IsListed: found?.spec.Display === true,
+      Stock: found?.spec.Stock ?? 0,
+    }
+  }), [rules, products])
 
   const startStockEdit = (r) => {
     setEditingStockId(r.Id)
@@ -28,9 +45,7 @@ export default function AdminGiftList() {
   // 已套用的條件（applied）— 只有點「查詢」才會更新
   const [applied, setApplied] = useState({ kw: '', pl: '', rt: '', ls: '' })
 
-  const [confirmId, setConfirmId] = useState(null)
-
-  const filtered = useMemo(() => rules.filter(r => {
+  const filtered = useMemo(() => enrichedRules.filter(r => {
     const { kw, pl, rt, ls } = applied
     if (kw && !`${r.Id} ${r.ProductId} ${r.ProductName}`.includes(kw)) return false
     if (pl !== '' && r.ProductionLine !== pl) return false
@@ -38,19 +53,9 @@ export default function AdminGiftList() {
     if (ls === 'on' && !r.IsListed) return false
     if (ls === 'off' && r.IsListed) return false
     return true
-  }), [rules, applied])
+  }), [enrichedRules, applied])
 
   const handleSearch = () => setApplied({ kw, pl, rt, ls })
-
-  const handleDeleteClick = (id) => {
-    if (confirmId === id) {
-      deleteRule(id)
-      setConfirmId(null)
-    } else {
-      setConfirmId(id)
-      setTimeout(() => setConfirmId(cur => cur === id ? null : cur), 5000)
-    }
-  }
 
   return (
     <div className="admin-gift-list">
@@ -124,7 +129,6 @@ export default function AdminGiftList() {
             {filtered.map(r => {
               const pl = PRODUCTION_LINES.find(x => x.Value === r.ProductionLine)
               const temp = TEMPERATURES.find(x => x.Value === r.TemperatureLayer)
-              const isConfirming = confirmId === r.Id
               return (
                 <tr key={r.Id}>
                   <td className="cell-id">
@@ -209,13 +213,6 @@ export default function AdminGiftList() {
                   </td>
                   <td className="cell-ops">
                     <Link to={`/admin/gifts/${r.Id}`} className="btn-op">編輯</Link>
-                    <button
-                      type="button"
-                      className={`btn-op ${isConfirming ? 'btn-danger-confirm' : ''}`}
-                      onClick={() => handleDeleteClick(r.Id)}
-                    >
-                      {isConfirming ? '確定刪除' : '刪除'}
-                    </button>
                   </td>
                 </tr>
               )

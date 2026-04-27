@@ -41,9 +41,10 @@
 .home-notes code { background: #fff; padding: 2px 6px; border-radius: 3px; }
 
 /* ===== 4.5 側欄購物車提示（CartSidebarGiftNotice）示範 ===== */
+/* ═══ Home 頁「側邊購物車」示範區塊 ═══ */
 .home-sidebar-demo {
   margin-top: 36px;
-  padding: 18px 20px;
+  padding: 20px;
   border-radius: 10px;
   background: #f8f9fb;
   border: 1px dashed #c6cfdc;
@@ -54,37 +55,302 @@
   margin-bottom: 12px;
 }
 .home-sidebar-demo-sub { color: #888; font-size: 12px; font-weight: 400; }
-.home-sidebar-mock {
-  max-width: 280px; margin: 0 auto;
-  background: #fff; border: 1px solid #e0e4ea;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.04);
-  overflow: hidden;
-}
-.home-sidebar-mock-items {
-  padding: 10px 14px;
-  font-size: 13px; color: #555;
-  display: flex; flex-direction: column; gap: 6px;
-}
-.home-sidebar-mock-item {
-  padding: 6px 0; border-bottom: 1px solid #f0f2f5;
-}
-.home-sidebar-mock-item:last-child { border-bottom: 0; }
 .home-sidebar-demo-note {
-  margin-top: 10px; text-align: center;
+  margin-top: 14px; text-align: center;
   font-size: 12px; color: #666;
 }
 
-.cart-sidebar-gift-notice {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 14px;
-  background: #fffbeb;                  /* amber-50 */
-  border-top: 1px solid #fde68a;        /* amber-200 */
-  color: #92400e;                       /* amber-800 */
-  font-size: 12px; line-height: 1.5;
+/* ═══ CartSidebar 1:1 復刻 greenbox.tw #shopping-cart ═══
+   原始 className（Tailwind）→ 直接對應的純 CSS
+   - drawer: w-[290px] bg-gb-green-light  → 290px wide, #f1ffee
+   - 主色 gb-green = #4ba83b
+   - 溫層色 c-frozen = #001455 (navy) / bg #cff6ff
+            c-refrigerated = #73bf00 (深綠)
+            c-normal = #ff8e88 (淺紅) */
+
+.cs-drawer {
+  width: 290px;
+  max-width: 290px;
+  min-height: 100vh;
+  max-height: 100vh;
+  background: #f1ffee;
+  overflow-y: auto;
+  font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #d4e8cb;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
 }
-.cart-sidebar-gift-notice .gift-notice-icon { font-size: 14px; flex-shrink: 0; }
-.cart-sidebar-gift-notice .gift-notice-text { flex: 1; }
+
+/* ── Header ── */
+.cs-header {
+  background: #f1ffee;
+  padding-top: 16px;
+}
+.cs-header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+}
+.cs-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #4ba83b;
+  margin: 0;
+}
+.cs-close-btn {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 4px;
+}
+.cs-close-svg {
+  width: 20px; height: 20px;
+  fill: #4ba83b;
+  display: block;
+}
+.cs-clear-row {
+  display: flex; justify-content: flex-end;
+}
+.cs-clear-btn {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  margin: 0 16px 5px 0;
+  font-size: 14px;
+  color: #595959;
+  font-family: inherit;
+  padding: 4px 0;
+}
+.cs-clear-btn:active { color: #000; }
+
+/* ── Empty 狀態 ── */
+.cs-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 13px;
+  padding: 60px 20px;
+  gap: 10px;
+}
+.cs-empty .fa { font-size: 36px; color: #ccc; }
+
+/* ── Summary card ── */
+.cs-info {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+}
+.cs-freight-card {
+  width: 100%;
+  margin: 4px 0;
+  padding: 4px;
+  border: 1px solid #4ba83b;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,.05);
+  background: #fff;
+}
+.cs-freight-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-weight: 700;
+  color: #4ba83b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.cs-freight-fee {
+  font-size: 12px;
+}
+.cs-freight-warn {
+  color: #ff0000;
+}
+.cs-total-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin: 4px 0;
+  padding: 0 4px;
+  font-weight: 700;
+  color: #4ba83b;
+  font-size: 14px;
+}
+.cs-checkout {
+  width: 100%;
+  height: 40px;
+  margin-top: 16px;
+  background: #4ba83b;
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+.cs-checkout:hover { background: #3d8c30; }
+
+/* ── Temperature group container ── */
+.cs-item-container {
+  width: 100%;
+}
+
+/* 溫層色系（對齊 production .c-frozen / .c-refrigerated / .c-normal）*/
+.cs-item-container.c-frozen        { color: #001455; border-color: #001455; }
+.cs-item-container.c-refrigerated  { color: #73bf00; border-color: #73bf00; }
+.cs-item-container.c-normal        { color: #ff8e88; border-color: #ff8e88; }
+
+/* 溫層大標（冷凍/冷藏/常溫）有底線 */
+.cs-temp-heading-wrap {
+  padding: 12px 15px 0;
+}
+.cs-temp-heading {
+  border: 0;
+  border-bottom: 4px solid;
+  padding: 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.cs-temp-heading.c-frozen        { color: #001455; border-bottom-color: #001455; }
+.cs-temp-heading.c-refrigerated  { color: #73bf00; border-bottom-color: #73bf00; }
+.cs-temp-heading.c-normal        { color: #ff8e88; border-bottom-color: #ff8e88; }
+
+/* 溫層 body */
+.cs-temp-body {
+  padding-bottom: 16px;
+}
+.cs-cart-order {
+  margin-top: 15px;
+}
+
+/* 子分類 pill（XX 專區），4px 粗框置中 */
+.cs-pill-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cs-pill {
+  margin: 0;
+  border-radius: 6px;
+  border: 4px solid;
+  padding: 0.1em 16px;
+  font-size: 16px;
+  font-weight: 700;
+  background: #fff;
+}
+.cs-pill.c-frozen        { color: #001455; border-color: #001455; }
+.cs-pill.c-refrigerated  { color: #73bf00; border-color: #73bf00; }
+.cs-pill.c-normal        { color: #ff8e88; border-color: #ff8e88; }
+
+/* ── 品項 ── */
+.cs-item {
+  width: 100%;
+  padding-top: 12px;
+}
+.cs-item-flex {
+  display: flex;
+  padding-right: 8px;
+}
+.cs-item-img {
+  position: relative;
+  margin-left: 12px;
+  height: 96px;
+  width: 96px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.cs-item-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cs-item-info {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-left: 8px;
+  min-width: 0;
+}
+.cs-item-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #262626;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.cs-item-name.has-suffix {
+  -webkit-line-clamp: 2;
+}
+.cs-item-suffix {
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #262626;
+  opacity: 0.7;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.cs-item-bottom {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* 移除按鈕 */
+.cs-item-trash {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  margin-top: 8px;
+}
+.cs-item-trash svg {
+  width: 24px; height: 24px;
+  fill: #595959;
+}
+.cs-item-trash:hover svg { fill: #ff0000; }
+
+/* 4.5 贈品提示（夾在運費卡 ↔ 總額之間，視覺與運費卡同款：綠框白底綠字置中粗體） */
+.cart-sidebar-gift-notice {
+  width: 100%;
+  margin: 6px 0;
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #4ba83b;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,.05);
+  color: #4ba83b;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
 
 /* ===== Admin Layout ===== */
 .admin-page {
@@ -548,16 +814,6 @@
 }
 .pd-btn-danger:hover:not(:disabled) { background: #ff4d4f; color: #fff; }
 .pd-btn-danger:disabled { opacity: .4; cursor: not-allowed; }
-
-.pd-gift-hint {
-  margin-top: 12px;
-  padding: 8px 12px;
-  background: #eff6ff;      /* blue-50 */
-  border: 1px solid #93c5fd; /* blue-300 */
-  border-radius: 6px;
-  color: #1e40af;            /* blue-800 */
-  font-size: 13px;
-}
 
 /* 新增規格列 + 直播場次 */
 .pd-add-row {
