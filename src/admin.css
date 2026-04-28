@@ -5,7 +5,7 @@
   display: flex; align-items: center; justify-content: center;
   padding: 40px 20px;
 }
-.home-wrap { width: 100%; max-width: 900px; }
+.home-wrap { width: 100%; max-width: 1200px; }
 .home-hero { text-align: center; margin-bottom: 48px; }
 .home-hero .home-logo { width: 56px; height: auto; }
 .home-hero h1 { margin: 12px 0 8px; font-size: 34px; color: #2c6e38; }
@@ -13,7 +13,10 @@
 .home-subtitle a { color: #4ba83b; text-decoration: underline; }
 
 .home-entries {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+}
+@media (min-width: 1100px) {
+  .home-entries { grid-template-columns: repeat(4, 1fr); }
 }
 .entry-card {
   background: #fff; border-radius: 12px;
@@ -959,3 +962,232 @@
 .stock-actions-row {
   display: inline-flex; gap: 4px;
 }
+
+/* ════════════════════════════════════════════════
+   ProductDetail (米餅) demo 頁專用樣式
+   對齊線上 https://greenbox.tw/Products/ItemDetail/75762
+   原站數值來自 production HTML inline <style> + layout-min.css
+   ════════════════════════════════════════════════ */
+
+/* 整個產品頁的外層 — 白底（線上產品頁不是灰底） */
+.pd-page-wrap {
+  background: #fff;
+  padding: 20px 0 40px;
+  min-height: 400px;
+}
+/* 容器 clearfix — 內部 col-xs-12 全是 float，沒清會撐不開高度 */
+.pd-page-wrap .container::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+/* 商品圖（無邊框；線上是 slick-carousel，這裡用單張靜態） */
+.pd-img-static img {
+  width: 100%; height: auto; display: block;
+}
+
+/* 縮圖切換 row */
+.pd-thumb-row {
+  display: flex; gap: 8px;
+  margin-top: 10px;
+  padding: 0 5px;
+}
+.pd-thumb-btn {
+  flex: 1; max-width: 100px;
+  padding: 3px;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.pd-thumb-btn:hover { border-color: #f5a623; }
+.pd-thumb-btn.active { border-color: #f5a623; }
+.pd-thumb-btn img {
+  width: 100%; height: auto; display: block;
+}
+
+/* 商品名稱 */
+.itemtitle {
+  font-size: 24px; color: #333; font-weight: 700;
+  line-height: 1.4; margin: 0;
+}
+
+/* 評價列：星星 + 分數 + 評論 + 已售，全部單行 inline */
+.score-area {
+  padding: 6px 0 10px;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+.score-area a { text-decoration: none; }
+.score-area .star-icon { color: #f5a623; font-size: 18px; margin-right: 1px; }
+.score-area .score-text { color: #333; margin-left: 8px; font-weight: 600; }
+.score-area .comment-text { color: #888; margin-left: 10px; font-size: 14px; }
+
+/* sub-line：商品規格 / 適合月齡 / 溫層配送 等小區塊標題（對齊 layout-min.css 的 .sub-title 數值）*/
+.sub-line {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0;
+  margin: 14px 0 4px;
+}
+.sub-title-icon {
+  width: 22px; height: 22px;
+  vertical-align: middle;
+}
+.sub-title {
+  font-size: 20px; font-weight: 700; line-height: 1.4;
+}
+
+/* col-xs-1-cus-1：自訂的窄欄位（線上實值 4.333333%）*/
+.col-xs-1-cus-1 {
+  width: 4.333333%; float: left;
+  font-size: 16px;
+  color: #ef8e8e;
+}
+.font-16px { font-size: 16px; }
+
+/* BulletRow：「．」+ 文字單行；用 flex 排版避開 Bootstrap float clearfix 麻煩 */
+.pd-bullet-row {
+  display: flex; align-items: baseline;
+  margin-bottom: 2px;
+  float: left;        /* 與相鄰的 col-xs-12 float 兼容 */
+  clear: both;
+  width: 100%;
+  line-height: 1.7;
+}
+.pd-bullet-marker {
+  flex: 0 0 16px;
+  text-align: left;
+  font-size: 16px;
+  color: #ef8e8e;
+}
+.pd-bullet-text {
+  flex: 1; min-width: 0;
+  font-size: 16px;
+  color: #333;
+  word-wrap: break-word;
+}
+
+/* pd-frame：分區容器（線上只有 color/font-size，無邊框/底色） */
+.pd-frame {
+  color: #333;
+  font-size: 16px;
+  margin-bottom: 0;
+}
+
+/* itemcontent 是 col-xs-12 (float left)，內含一堆 sub-line + bullet-row（也是 float）；
+   沒 clearfix 的話 itemcontent 高度塌陷，下一段 .spec-frame 的 margin-top 會被「clear」吃掉。
+   加 clearfix 讓 itemcontent 撐到實際高度，下一段就能正常顯示 margin-top。*/
+.itemcontent::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+/* 規格選擇（對齊線上 inline style：padding 5px 2px、border-radius 2px）
+   線上桌面是 col-xs-6（半寬），這裡用 max-width 約束 */
+.spec-frame {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding-top: 18px;  /* 用 padding 而非 margin，避免被 clear:both 吃掉，
+                         與其他 sub-line 之間的間距一致（SubLineTitle marginTop: 18）*/
+  margin-bottom: 8px;
+  clear: both;        /* 強制掉到上方 col-xs-12 floats 下方 */
+}
+.spec-btn {
+  width: auto;
+  min-width: 200px; max-width: 50%;
+  padding: 5px 12px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #000;
+  text-align: center;
+  line-height: 1.6;
+  transition: all .15s;
+}
+.spec-btn:hover { border-color: #4ba83b; }
+.spec-btn.active {
+  background: #4ba83b;
+  color: #fff;
+  border-color: #4ba83b;
+}
+
+/* 售價/數量 row（左：售價、右：數量） */
+.itemdetail {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  clear: both;        /* 強制掉到上方 col-xs-12 floats 下方 */
+}
+.itemdetail .item-title {
+  font-size: 16px; font-weight: 600;
+  color: #333; margin-right: 4px;
+}
+.pd-price-qty-row {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+  margin-bottom: 14px;
+}
+
+/* 購買按鈕 row：加入菜籃 + 電話 + LINE 並排 */
+.pd-buy-btn-row {
+  display: flex; gap: 10px; align-items: stretch;
+}
+.pd-buy-btn-row .buybutton { flex: 1; }
+.pd-buy-btn-row .phonebuttonWeb { flex: 0 0 50px; width: auto; }
+
+/* 加入菜籃按鈕（線上實值：紅 #d24c4c、padding 6px 10px、font-size 15px）*/
+.add_cart_btn-p { padding: 0 6px; }
+.buybutton {
+  display: inline-block; width: 100%;
+  padding: 6px 10px;
+  background: #d24c4c; color: #fff !important;
+  border-radius: 5px;
+  text-align: center; font-size: 15px; font-weight: 600;
+  text-decoration: none;
+  border: 0;
+  margin: 8px 0 0 0;
+  transition: background .15s;
+}
+.buybutton:hover { background: #b73a3a; }
+.buybutton .fa { margin-right: 4px; }
+
+/* 電話 / LINE 按鈕（白底圓角） */
+.phonebuttonWeb {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 100%; height: 36px;
+  background: #fff;
+  border: 1px solid #4ba83b; border-radius: 5px;
+  color: #4ba83b;
+  text-decoration: none;
+  margin: 8px 0 0 0;
+}
+.phonebuttonWeb:hover { background: #f1ffee; }
+
+/* 腰帶廣告 */
+.adArea img { width: 100%; height: auto; display: block; }
+
+/* Demo 範圍提示框 — 必須 clear，否則會「包住」上方的 float content（產生黃底覆蓋）*/
+.pd-demo-hint {
+  clear: both;
+  margin: 32px 15px 40px;
+  padding: 14px 18px;
+  background: #fff8e1;
+  border: 1px dashed #e0c060;
+  border-radius: 6px;
+  font-size: 14px; color: #7a5a00; line-height: 1.8;
+}
+.pd-demo-hint .hl { color: #2c6e38; font-weight: 600; }
+.pd-demo-hint a { color: #4ba83b; text-decoration: underline; }
+
+/* margin 工具（線上頁用到，補齊以免破版） */
+.m-t-10 { margin-top: 10px; }
+.m-t-20 { margin-top: 20px; }
+.m-t-30 { margin-top: 30px; }
+.m-t-40 { margin-top: 40px; }
+.m-b-10 { margin-bottom: 10px; }
+.m-b-15 { margin-bottom: 15px; }
+.m-b-20 { margin-bottom: 20px; }

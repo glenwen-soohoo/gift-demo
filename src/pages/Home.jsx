@@ -36,6 +36,15 @@ export default function Home() {
             </div>
           </Link>
 
+          <Link to="/Products/ItemDetail/75762" className="entry-card entry-front">
+            <div className="entry-icon">🍪</div>
+            <div className="entry-body">
+              <h2>前台：產品內頁（米餅）</h2>
+              <p>「買就送活動資訊」放在出貨日期下方、規格選擇上方</p>
+              <div className="entry-url">/Products/ItemDetail/75762</div>
+            </div>
+          </Link>
+
           <Link to="/admin/gifts" className="entry-card entry-admin">
             <div className="entry-icon">🎁</div>
             <div className="entry-body">
