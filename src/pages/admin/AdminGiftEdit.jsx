@@ -280,7 +280,7 @@ export default function AdminGiftEdit() {
                       <input
                         type="text"
                         className="form-input target-input"
-                        placeholder="75766, 75765"
+                        placeholder="例如：75766, 75765"
                         value={productIdsText}
                         onChange={e => setProductIdsText(e.target.value)}
                         disabled={!form.UseProductIds}
@@ -304,7 +304,7 @@ export default function AdminGiftEdit() {
                       <input
                         type="text"
                         className="form-input target-input"
-                        placeholder="123459, 123464, 123465"
+                        placeholder="例如：123459, 123464, 123465"
                         value={specIdsText}
                         onChange={e => setSpecIdsText(e.target.value)}
                         disabled={!form.UseSpecIds}
