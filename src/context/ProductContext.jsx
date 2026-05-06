@@ -4,10 +4,13 @@ import { ProductCategoryEnum, TemperatureLayer } from '../data/fakeData'
 
 const LS_KEY = 'gift-demo:products'
 const LS_VERSION = 'gift-demo:products:v'
-const CURRENT_VERSION = 4
+const CURRENT_VERSION = 5
 // v3 = 新增贈品產品讓所有 GiftRule 的對應 ProductDetail 都存在
 // v4 = 確認所有 DEMO_PRODUCTS 內建產品都存在於 LS（避免「中間版本 v3 漏加產品」的殘留）
 //      User 自己編輯的產品保留不動，內建產品如果存在 user LS 也保留 user 編輯
+// v5 = 內建產品的內建規格（Id 在 DEMO_PRODUCTS source 內）強制刷新成 source code 最新值，
+//      搭配 GiftRulesContext v9 — 解決「user 之前在 admin 取消「設為贈品」導致 spec.IsGift=false
+//      跟 GiftRule 不同步」的問題。User 自己新增的規格（Id 不在 source 內）保留不動
 
 const ProductContext = createContext(null)
 
@@ -87,10 +90,34 @@ function loadProducts() {
       }
     }
 
+    // 3) 內建規格（spec.Id 在 DEMO_PRODUCTS source 內）強制刷新成 source code 最新值
+    //    解決「user 之前取消勾『設為贈品』把內建規格 IsGift=false 了」這種偏離；
+    //    user 自己新增的規格（Id 不在 source 內）保留不動
+    const sourceSpecsById = new Map()
+    for (const p of Object.values(DEMO_PRODUCTS)) {
+      for (const s of p.Specs ?? []) sourceSpecsById.set(s.Id, s)
+    }
+    for (const pid of Object.keys(migrated)) {
+      const sourceProduct = DEMO_PRODUCTS[pid]
+      if (!sourceProduct) continue   // user 自己新增的產品，整包保留
+      migrated[pid] = {
+        ...migrated[pid],
+        Specs: (migrated[pid].Specs ?? []).map(s => {
+          const fresh = sourceSpecsById.get(s.Id)
+          return fresh ? { ...fresh } : s
+        }),
+      }
+      // 如果 user 把某內建規格刪了，把它補回去
+      const existingIds = new Set(migrated[pid].Specs.map(s => s.Id))
+      for (const s of sourceProduct.Specs ?? []) {
+        if (!existingIds.has(s.Id)) migrated[pid].Specs.push({ ...s })
+      }
+    }
+
     localStorage.setItem(LS_KEY, JSON.stringify(migrated))
     localStorage.setItem(LS_VERSION, String(CURRENT_VERSION))
     // eslint-disable-next-line no-console
-    console.info('[gift-demo] migrated products → v4 (補齊所有內建贈品產品)')
+    console.info('[gift-demo] migrated products → v' + CURRENT_VERSION + ' (補齊所有內建贈品產品 + 強制刷新內建規格)')
     return migrated
   } catch {
     return DEMO_PRODUCTS

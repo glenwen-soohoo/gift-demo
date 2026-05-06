@@ -5,11 +5,13 @@ import { findSpecById } from '../data/productSpecs'
 
 const LS_KEY = 'gift-demo:giftRules'
 const LS_VERSION = 'gift-demo:giftRules:v'
-const CURRENT_VERSION = 8
+const CURRENT_VERSION = 9
 // v6 = 把 IsListed / Stock 從 GiftRule 拿掉；單一資料來源 = ProductDetail（productSpecs.js）
 // v7 = 內建規則（id 在 initialGiftRules 內的）每次升版都從 source code 強制刷新
 // v8 = 重新跑一次刷新 — 修復「v7 migration 跑時 source code 還是中間版本，內建規則
 //      ProductName 殘留「(限購三張)」、Repeatable=false 等舊欄位值」
+// v9 = 強制把 source code 7 條內建規則補回 LS（解決 user 之前在 admin 取消勾「設為贈品」
+//      導致內建規則 163483 保冷袋滿額贈、137029 集點卡買就送等被刪掉而消失的問題）
 //
 // 之後如果再改 initialGiftRules 內容，記得 bump 版本就會自動同步
 // 內建規則 = 寫在 src/data/giftRules.js 的那 7 條 demo 預設規則
@@ -117,7 +119,7 @@ function loadRules() {
     localStorage.setItem(LS_KEY, JSON.stringify(migrated))
     localStorage.setItem(LS_VERSION, String(CURRENT_VERSION))
     // eslint-disable-next-line no-console
-    console.info('[gift-demo] migrated giftRules → v8 (再次強制刷新內建規則 — 解決 v7 跑時 source 不是最新版的 drift)')
+    console.info('[gift-demo] migrated giftRules → v' + CURRENT_VERSION + ' (補回 source code 內建規則，解決 user 在 admin 取消「設為贈品」後內建規則消失的 drift)')
     return migrated
   } catch {
     return initialGiftRules

@@ -198,39 +198,46 @@ export default function ProductDetail() {
                     - 不是所有產品頁都會出現，沒有任何匹配規則時整個區塊不顯示
                   ════════════════════════════════════════════════════════════════ */}
               {hasGiftSection && (
-                <div className="pd-gift-section">
-                  {activeBuyToGetRules.length > 0 && (
-                    <>
-                      <SubLineTitle style={{ marginTop: 0 }}>買就送活動資訊</SubLineTitle>
-                      {activeBuyToGetRules.flatMap(rule =>
-                        (rule.PopupText || '')
-                          .split('\n')
-                          .filter(Boolean)
-                          .map((line, idx) => (
-                            <BulletRow key={`buytoget-${rule.Id}-${idx}`}>{line}</BulletRow>
-                          ))
-                      )}
-                    </>
-                  )}
+                <>
+                  {/* 上分隔線 — 用獨立 div + margin 讓 divider 在「上下都有 9px 呼吸空間」
+                      的位置；border-top 寫在 pd-gift-section 容器上時 margin 會被 clear:both
+                      吃掉，導致 divider 緊貼上面的「出貨日期」最後一條 bullet */}
+                  <div className="pd-gift-divider" />
+                  <div className="pd-gift-section">
+                    {activeBuyToGetRules.length > 0 && (
+                      <>
+                        <SubLineTitle style={{ marginTop: 0 }}>買就送活動資訊</SubLineTitle>
+                        {activeBuyToGetRules.flatMap(rule =>
+                          (rule.PopupText || '')
+                            .split('\n')
+                            .filter(Boolean)
+                            .map((line, idx) => (
+                              <BulletRow key={`buytoget-${rule.Id}-${idx}`}>{line}</BulletRow>
+                            ))
+                        )}
+                      </>
+                    )}
 
-                  {activeThresholdRules.length > 0 && (
-                    <>
-                      <SubLineTitle
-                        style={{ marginTop: activeBuyToGetRules.length > 0 ? 18 : 0 }}
-                      >
-                        滿額贈活動資訊
-                      </SubLineTitle>
-                      {activeThresholdRules.flatMap(rule =>
-                        (rule.PopupText || '')
-                          .split('\n')
-                          .filter(Boolean)
-                          .map((line, idx) => (
-                            <BulletRow key={`threshold-${rule.Id}-${idx}`}>{line}</BulletRow>
-                          ))
-                      )}
-                    </>
-                  )}
-                </div>
+                    {activeThresholdRules.length > 0 && (
+                      <>
+                        <SubLineTitle
+                          style={{ marginTop: activeBuyToGetRules.length > 0 ? 18 : 0 }}
+                        >
+                          滿額贈活動資訊
+                        </SubLineTitle>
+                        {activeThresholdRules.flatMap(rule =>
+                          (rule.PopupText || '')
+                            .split('\n')
+                            .filter(Boolean)
+                            .map((line, idx) => (
+                              <BulletRow key={`threshold-${rule.Id}-${idx}`}>{line}</BulletRow>
+                            ))
+                        )}
+                      </>
+                    )}
+                  </div>
+                  <div className="pd-gift-divider" />
+                </>
               )}
             </div>
 
