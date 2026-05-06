@@ -124,6 +124,41 @@ export const initialGiftRules = [
     UpdateTime: '',
     UpdateUserId: 0,
   },
+  // 3a) 保溫袋（高階）— 第二條粥寶寶/冷凍滿額贈，門檻更高
+  //     demo 目的：配合產品內頁示範「同一商品 1 買就送 + 2 滿額贈」三條規則並排
+  //     的視覺效果（讓 PM/行銷看到多規則時版面長相）
+  {
+    Id: 163600,
+    ProductId: 69930,
+    ProductName: '粥寶寶限量保溫袋（高階）',
+    ProductSpec: '1 個',
+    SpecSuffix: '(贈品)',
+    Pic: 'https://greenboxcdn.azureedge.net/upload/Product_3033/202502200530421.jpg',
+    DeliveryTime: '2026/04/22 ~',
+    RuleType: 'Threshold',
+    ProductionLine: ProductCategoryEnum.粥寶寶專區,
+    TemperatureLayer: TemperatureLayer.冷凍,
+    ThresholdAmount: 3000,
+    HintAmount: 2500,
+    ThresholdQuantity: 0,
+    UseProductIds: false,
+    UseSpecIds: false,
+    TargetProductIds: [],
+    TargetSpecIds: [],
+    GiftQuantity: 1,
+    Repeatable: false,
+    PopupText:
+      '粥寶寶專區消費滿 $3,000 元，即可獲得此高階限量保溫袋一份。\n限 VIP 等級（含）以上會員。\n每筆訂單限獲一份，數量有限，送完為止。',
+    MembershipLimits: ['VIP', 'VVIP', 'SVIP'],
+    State: GIFT_RULE_STATE.上架中,
+    StartTime: null,
+    EndTime: null,
+    CreateTime: '2026/02/15 10:00',
+    CreateUserId: 0,
+    CreateUser: '某某某',
+    UpdateTime: '',
+    UpdateUserId: 0,
+  },
   // 3) 保冷袋（第二條） — 買就送版本，示範同一贈品可以掛多條規則
   {
     Id: 163484,

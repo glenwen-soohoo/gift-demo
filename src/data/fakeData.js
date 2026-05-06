@@ -130,10 +130,12 @@ export const initialCart = [
         GiftRuleId: null,
         IsGiftDeclined: false,
       },
-      // 綜合米餅六入組 × 1 — 用來觸發「買就送」（米餅 ≥ 1 件就送集點卡）
-      // 數量 1 + 燉飯 949 = 粥寶寶/冷凍小計 1849，落在「快達門檻提示」範圍 [1800, 2000)，
-      // 結帳頁會顯示「粥寶寶 還差 $151 元即可獲得贈品『保冷袋』」提示列
-      // （改 qty=2 → 小計 2749 直接觸發滿額贈，提示列就會消失）
+      // 綜合米餅六入組 × 2 — 同時示範三種贈品狀態：
+      //   - 燉飯 949 + 米餅 900×2 = 粥寶寶/冷凍小計 2749
+      //   - 規則 137029（米餅買就送集點卡，米餅≥1 件即觸發）→ 觸發
+      //   - 規則 163483（粥寶寶/冷凍 滿 $2000 送保冷袋）→ 觸發（2749 ≥ 2000）
+      //   - 規則 163600（粥寶寶/冷凍 滿 $3000 送高階保溫袋，HintAmount $2500）→ hint
+      //     （2749 在 [2500, 3000)）→ 結帳頁顯示「還差 $251 元獲得高階保溫袋」
       {
         uid: 'b-75762-180001',
         ProductId: 75762,
@@ -145,7 +147,7 @@ export const initialCart = [
         Pic: 'https://greenboxcdn.azureedge.net/upload/Album_3035/File/202604021019081.jpg',
         DeliveryTime: '2026/04/22 ~',
         Price: 900,
-        Quantity: 1,
+        Quantity: 2,
         MaxQty: 10,
         Type: ProductCategoryEnum.粥寶寶專區,
         TemperatureType: TemperatureLayer.冷凍,

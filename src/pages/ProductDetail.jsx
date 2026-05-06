@@ -2,6 +2,11 @@
 //
 // 目的：示範「買就送 / 滿額贈」活動資訊應該顯示在「出貨日期」與「規格選擇」之間
 // 範圍：版面只做到「腰帶（紅寶石奇異果 banner）」即可，下方商品敘述 / 評論不做
+//
+// 贈品區塊的標題用「productDescription banner」樣式（深綠橫條 + 白字置中），對齊
+// fruit_web 既有 product detail page「無毒農檢驗 / 商品敘述 / 粥寶一起」那種大塊
+// 段落標題的設計語言，視覺更醒目。
+//
 // 資料來源：
 //   - 商品基本資料 → 直接寫死（沒有 75762 的 ProductDetail 假資料、不是 demo 重點）
 //   - 「買就送活動資訊」內文 → 撈 TargetProductIds 包含本商品 + 上架中 BuyToGet 規則
@@ -10,7 +15,7 @@
 //     這條規則的小計才有意義，否則秀了也誤導）
 //
 // 米餅在 production 是「常溫」，但這份 demo 為了同時示範「買就送 + 滿額贈」兩個區塊，
-// 把溫層配送顯示為「冷凍」（與 ConfirmOrder 購物車中的 米餅 一致），這樣 powder
+// 把溫層配送顯示為「冷凍」（與 ConfirmOrder 購物車中的 米餅 一致），這樣
 // `粥寶寶/冷凍/$2000` 滿額贈規則才會被匹配到。實作 fruit_web 時直接用真實的 ProductDetail
 // 資料即可，不會有這個問題。
 
@@ -22,6 +27,11 @@ import { ProductCategoryEnum, TemperatureLayer } from '../data/fakeData'
 
 const ICON = 'https://fruitbox.blob.core.windows.net/pagematerials/product/item-detail/icon_babyfood.png'
 const KIWI_BANNER = 'https://greenboxcdn.azureedge.net/upload/Banner/202603190413111.png'
+
+// 「productDescription」區塊用的標題 banner 圖（fruit_web 既有資產，產品內頁
+// 「無毒農檢驗 / 商品敘述 / 粥寶一起」等大標都用這組圖）
+const TITLE_BANNER_WEB = 'https://fruitbox.blob.core.windows.net/pagematerials/product/item-detail/title_web_babyfood.png'
+const TITLE_BANNER_MOBILE = 'https://fruitbox.blob.core.windows.net/pagematerials/product/item-detail/title_mobile_babyfood.png'
 
 // 產品圖片組（線上 slick carousel 的所有縮圖）
 const PRODUCT_IMAGES = [
@@ -39,12 +49,24 @@ const PRODUCT_NAME = '【限時免運】綜合米餅六入組'
 const PRODUCT_PRODUCTION_LINE = ProductCategoryEnum.粥寶寶專區
 const PRODUCT_TEMPERATURE = TemperatureLayer.冷凍   // demo 用冷凍（搭配 滿額贈/粥寶寶/冷凍 規則）
 
-// 線上頁的 sub-line 標題列（icon + 文字）
+// 線上頁的 sub-line 標題列（icon + 文字）— 商品規格 / 適合月齡 / 溫層配送 等用
 function SubLineTitle({ children, style = {} }) {
   return (
     <div className="col-xs-12 sub-line" style={style}>
       <img className="sub-title-icon" src={ICON} alt="" />
       <span className="sub-title" style={{ color: '#ef8e8e' }}>{children}</span>
+    </div>
+  )
+}
+
+// productDescription banner 標題 — 贈品活動資訊用
+// 對齊 fruit_web 既有 product detail page「無毒農檢驗 / 商品敘述」那種大塊段落標題
+function GiftBannerTitle({ children }) {
+  return (
+    <div className="pd-gift-banner-title col-xs-12 p-0">
+      <img className="web-show" src={TITLE_BANNER_WEB} alt="" />
+      <img className="mobile-show" src={TITLE_BANNER_MOBILE} alt="" />
+      <span className="productDescription">{children}</span>
     </div>
   )
 }
@@ -62,6 +84,22 @@ function BulletRow({ children, color, marker = '．', markerColor = '#ef8e8e' })
   )
 }
 
+// 把同類型多條規則的 PopupText 渲染出來，規則之間插一條輕量 sub-divider
+// 避免「兩條規則的條列文字直接連在一起、客人以為是同一個活動」的誤解
+function renderRulesWithSubDivider(rules, keyPrefix) {
+  return rules.map((rule, ruleIdx) => {
+    const lines = (rule.PopupText || '').split('\n').filter(Boolean)
+    return (
+      <div key={`${keyPrefix}-${rule.Id}`} className="pd-gift-rule-block">
+        {ruleIdx > 0 && <div className="pd-gift-rule-divider" />}
+        {lines.map((line, idx) => (
+          <BulletRow key={`${keyPrefix}-${rule.Id}-${idx}`}>{line}</BulletRow>
+        ))}
+      </div>
+    )
+  })
+}
+
 export default function ProductDetail() {
   const { rules } = useGiftRules()
   const [activeImg, setActiveImg] = useState(0)
@@ -76,9 +114,6 @@ export default function ProductDetail() {
   )
 
   // ── 找出「上架中、產線+溫層都符合本商品」的滿額贈規則 ──
-  // 必須同時匹配 ProductionLine + TemperatureLayer，因為 evaluateGifts 計算小計時
-  // 是「同產線 + 同溫層」一起加總；產品溫層不符的話，買這個商品也不會貢獻到該規則
-  // 的門檻金額，秀活動資訊只會誤導
   // 對應 fruit_web 未來的：CartGiftService.GetActiveThresholdRulesForProduct(productId)
   const activeThresholdRules = rules.filter(r =>
     r.RuleType === 'Threshold' &&
@@ -86,8 +121,6 @@ export default function ProductDetail() {
     r.ProductionLine === PRODUCT_PRODUCTION_LINE &&
     r.TemperatureLayer === PRODUCT_TEMPERATURE
   )
-
-  const hasGiftSection = activeBuyToGetRules.length > 0 || activeThresholdRules.length > 0
 
   return (
     // 注意：外層的 .container 與 .sb-site-container 由 ProductLayout 提供，
@@ -97,11 +130,9 @@ export default function ProductDetail() {
         <div className="row" style={{ padding: '0 8px' }}>
           {/* ────────── 左欄：商品圖 + 縮圖切換 + 貼心叮嚀（web-show）────────── */}
           <div className="col-md-6 col-xs-12 m-b-15">
-            {/* 主圖 */}
             <div className="pd-img-static">
               <img src={PRODUCT_IMAGES[activeImg]} alt={PRODUCT_NAME} />
             </div>
-            {/* 縮圖切換 row（線上是 slick-slider，這裡用簡化版） */}
             <div className="pd-thumb-row">
               {PRODUCT_IMAGES.map((src, i) => (
                 <button
@@ -114,8 +145,6 @@ export default function ProductDetail() {
                 </button>
               ))}
             </div>
-
-            {/* 貼心叮嚀（線上 .web-show 區塊）*/}
             <div className="web-show">
               <SubLineTitle style={{ marginTop: 14 }}>貼心叮嚀</SubLineTitle>
               <BulletRow>1、本商品適合5個月以上寶寶手指食物。</BulletRow>
@@ -128,13 +157,12 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          {/* ────────── 右欄：商品名 / 評價 / 商品規格 / 適合月齡 / 溫層配送 / 出貨日期 / 買就送 / 規格選擇 / 價格購買 ────────── */}
+          {/* ────────── 右欄：商品名 / 評價 / 商品規格 / 適合月齡 / 溫層配送 / 出貨日期 / 贈品 / 規格選擇 / 價格購買 ────────── */}
           <div className="col-md-6 col-xs-12 m-b-15">
             <h2 className="itemtitle" style={{ marginBottom: 0, paddingBottom: 0 }}>
               {PRODUCT_NAME}
             </h2>
 
-            {/* 評價列 — 單行 inline：5 顆星 + 分數 + 評論 + 已售出 */}
             <div className="score-area" style={{ borderBottom: '1px solid #b3b3b1' }}>
               <span className="star-icon"><i className="fa fa-star" /></span>
               <span className="star-icon"><i className="fa fa-star" /></span>
@@ -152,8 +180,6 @@ export default function ProductDetail() {
               </span>
             </div>
 
-            {/* 商品基本資訊區塊（所有 sub-line 都放這個 col-xs-12 wrapper 裡，
-                共享同一個 sub-line marginTop 規律，避免間距不一致）*/}
             <div className="itemcontent col-xs-12 p-0" style={{ color: '#333', fontSize: 16, marginBottom: 0 }}>
               <SubLineTitle>商品規格</SubLineTitle>
               <BulletRow>約50±3克/包，香蕉、鳳梨、草莓米餅3口味共6包。</BulletRow>
@@ -162,8 +188,6 @@ export default function ProductDetail() {
               <BulletRow>5個月以上寶寶</BulletRow>
 
               <SubLineTitle style={{ marginTop: 18 }}>溫層配送</SubLineTitle>
-              {/* demo：原本 production 是「常溫」，這裡改成「冷凍」以便同時示範
-                  買就送（米餅指定）+ 滿額贈（粥寶寶/冷凍 滿2000）兩個區塊 */}
               <BulletRow>冷凍</BulletRow>
 
               <SubLineTitle style={{ marginTop: 18 }}>出貨日期</SubLineTitle>
@@ -172,83 +196,49 @@ export default function ProductDetail() {
               {/* ════════════════════════════════════════════════════════════════
                   贈品活動資訊區塊（贈品系統 demo 重點）
 
-                  包含兩個子區塊，邏輯一致、只差匹配條件：
-
-                  一、買就送活動資訊
+                  「買就送活動資訊」
                     顯示條件：本商品被某條上架中的買就送規則指定為觸發商品才會出現
-                      亦即 GiftRules 表中存在 RuleType==='BuyToGet' 且
-                      TargetProductIds 包含當前 productId 的「上架中」規則
                     fruit_web 對應：GetActiveBuyToGetRulesForProduct(productId)
-
-                  二、滿額贈活動資訊
+                  「滿額贈活動資訊」
                     顯示條件：本商品的「產線 + 溫層」與某條上架中滿額贈規則的
                       ProductionLine + TemperatureLayer 都吻合才會出現
-                      （因為 evaluateGifts 的小計就是「同產線 + 同溫層」加總；
-                      溫層不符的話，買這商品也不會貢獻到該規則的門檻金額，秀活動
-                      資訊會誤導客人）
                     fruit_web 對應：GetActiveThresholdRulesForProduct(productId)
 
                   共同設計決定：
                     - 不顯示贈品名稱（rule.ProductName）。一個觸發商品可能對多條
                       規則，每條都掛贈品名版面會太長 — 後台已要求 PopupText 把活動
                       辦法寫清楚
-                    - 多條規則合併展開：所有符合條件的規則 PopupText 接著條列即可，
-                      不分組標題
-                    - 上下加分隔線（pd-gift-section）讓區塊跟其他 sub-line 有區隔
-                    - 不是所有產品頁都會出現，沒有任何匹配規則時整個區塊不顯示
+                    - 同一型別內若有多條規則，規則之間插一條輕量 sub-divider 避免
+                      「條列文字連在一起被誤解成同一個活動」（renderRulesWithSubDivider）
+                    - 標題用 productDescription banner 樣式（深綠 banner + 白字置中），
+                      跟「無毒農檢驗 / 商品敘述」同設計語言；視覺比 sub-line 醒目
+                    - 沒有任何匹配規則時整個區塊不顯示（一般商品不出現）
                   ════════════════════════════════════════════════════════════════ */}
-              {hasGiftSection && (
+              {activeBuyToGetRules.length > 0 && (
                 <>
-                  {/* 上分隔線 — 用獨立 div + margin 讓 divider 在「上下都有 9px 呼吸空間」
-                      的位置；border-top 寫在 pd-gift-section 容器上時 margin 會被 clear:both
-                      吃掉，導致 divider 緊貼上面的「出貨日期」最後一條 bullet */}
-                  <div className="pd-gift-divider" />
-                  <div className="pd-gift-section">
-                    {activeBuyToGetRules.length > 0 && (
-                      <>
-                        <SubLineTitle style={{ marginTop: 0 }}>買就送活動資訊</SubLineTitle>
-                        {activeBuyToGetRules.flatMap(rule =>
-                          (rule.PopupText || '')
-                            .split('\n')
-                            .filter(Boolean)
-                            .map((line, idx) => (
-                              <BulletRow key={`buytoget-${rule.Id}-${idx}`}>{line}</BulletRow>
-                            ))
-                        )}
-                      </>
-                    )}
-
-                    {activeThresholdRules.length > 0 && (
-                      <>
-                        <SubLineTitle
-                          style={{ marginTop: activeBuyToGetRules.length > 0 ? 18 : 0 }}
-                        >
-                          滿額贈活動資訊
-                        </SubLineTitle>
-                        {activeThresholdRules.flatMap(rule =>
-                          (rule.PopupText || '')
-                            .split('\n')
-                            .filter(Boolean)
-                            .map((line, idx) => (
-                              <BulletRow key={`threshold-${rule.Id}-${idx}`}>{line}</BulletRow>
-                            ))
-                        )}
-                      </>
-                    )}
+                  <GiftBannerTitle>買就送活動資訊</GiftBannerTitle>
+                  <div className="pd-gift-bullets">
+                    {renderRulesWithSubDivider(activeBuyToGetRules, 'buytoget')}
                   </div>
-                  <div className="pd-gift-divider" />
+                </>
+              )}
+
+              {activeThresholdRules.length > 0 && (
+                <>
+                  <GiftBannerTitle>滿額贈活動資訊</GiftBannerTitle>
+                  <div className="pd-gift-bullets">
+                    {renderRulesWithSubDivider(activeThresholdRules, 'threshold')}
+                  </div>
                 </>
               )}
             </div>
 
-            {/* 規格選擇（線上是 col-xs-6，桌面下是半寬）*/}
             <div className="spec-frame">
               <button type="button" className="spec-btn active">
                 1 組 (3口味各2包，共6包)
               </button>
             </div>
 
-            {/* 價格 / 數量 — 同一列；下方是購買按鈕 */}
             <div className="itemdetail">
               <div className="pd-price-qty-row">
                 <div>
@@ -305,8 +295,8 @@ export default function ProductDetail() {
       <div className="pd-demo-hint">
         <strong>Demo 範圍：</strong>
         本頁僅製作到「腰帶（寶石紅奇異果 banner）」為止，下方「商品敘述」「無毒農檢驗」等不在 demo 範圍內。
-        重點示範：<span className="hl">「買就送活動資訊」放在「出貨日期」與「規格選擇」之間</span>。
-        若看不到此區塊，請到 <Link to="/admin/gifts">/admin/gifts</Link> 確認有上架中的買就送規則 TargetProductIds 包含 75762。
+        重點示範：<span className="hl">「買就送活動資訊」與「滿額贈活動資訊」放在「出貨日期」與「規格選擇」之間，標題用 banner 樣式</span>。
+        若看不到贈品區塊，請到 <Link to="/admin/gifts">/admin/gifts</Link> 確認有上架中規則。
       </div>
     </>
   )

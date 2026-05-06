@@ -97,6 +97,18 @@ export const DEMO_PRODUCTS = {
     ],
   },
 
+  // 69930 粥寶寶限量保溫袋（rule 163600 — demo 用第二條粥寶寶/冷凍滿額贈規則，
+  //       配合 ProductDetail 米餅頁同時示範「1 買就送 + 2 滿額贈」三條規則並排）
+  69930: {
+    Id: 69930,
+    Name: '粥寶寶限量保溫袋（高階）',
+    ProductionLine: ProductCategoryEnum.粥寶寶專區,
+    TemperatureLayer: TemperatureLayer.冷凍,
+    Specs: [
+      makeGiftSpec({ Id: 163600, Detail: '贈品（保溫袋）', Stock: 30, Cost: 180 }),
+    ],
+  },
+
   // 69965 粥寶寶集點趣｜集點卡（rule 136837 常溫版，預設下架）
   69965: {
     Id: 69965,

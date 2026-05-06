@@ -4,13 +4,15 @@ import { ProductCategoryEnum, TemperatureLayer } from '../data/fakeData'
 
 const LS_KEY = 'gift-demo:products'
 const LS_VERSION = 'gift-demo:products:v'
-const CURRENT_VERSION = 5
+const CURRENT_VERSION = 6
 // v3 = 新增贈品產品讓所有 GiftRule 的對應 ProductDetail 都存在
 // v4 = 確認所有 DEMO_PRODUCTS 內建產品都存在於 LS（避免「中間版本 v3 漏加產品」的殘留）
 //      User 自己編輯的產品保留不動，內建產品如果存在 user LS 也保留 user 編輯
 // v5 = 內建產品的內建規格（Id 在 DEMO_PRODUCTS source 內）強制刷新成 source code 最新值，
 //      搭配 GiftRulesContext v9 — 解決「user 之前在 admin 取消「設為贈品」導致 spec.IsGift=false
 //      跟 GiftRule 不同步」的問題。User 自己新增的規格（Id 不在 source 內）保留不動
+// v6 = 新增產品 69930（粥寶寶限量保溫袋／高階）+ 規格 163600，搭配 GiftRulesContext v10
+//      新增的 rule 163600（demo 用第二條粥寶寶/冷凍滿額贈規則）
 
 const ProductContext = createContext(null)
 

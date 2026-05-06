@@ -5,16 +5,20 @@ import { findSpecById } from '../data/productSpecs'
 
 const LS_KEY = 'gift-demo:giftRules'
 const LS_VERSION = 'gift-demo:giftRules:v'
-const CURRENT_VERSION = 9
+const CURRENT_VERSION = 11
 // v6 = 把 IsListed / Stock 從 GiftRule 拿掉；單一資料來源 = ProductDetail（productSpecs.js）
 // v7 = 內建規則（id 在 initialGiftRules 內的）每次升版都從 source code 強制刷新
 // v8 = 重新跑一次刷新 — 修復「v7 migration 跑時 source code 還是中間版本，內建規則
 //      ProductName 殘留「(限購三張)」、Repeatable=false 等舊欄位值」
 // v9 = 強制把 source code 7 條內建規則補回 LS（解決 user 之前在 admin 取消勾「設為贈品」
 //      導致內建規則 163483 保冷袋滿額贈、137029 集點卡買就送等被刪掉而消失的問題）
+// v10 = 新增 rule 163600（粥寶寶/冷凍 滿 $3000 送高階保溫袋）— demo 用第二條
+//       粥寶寶/冷凍滿額贈，配合產品內頁示範「1 買就送 + 2 滿額贈」三條規則並排
+// v11 = rule 163600 MembershipLimits 從 ['VVIP','SVIP'] 改成 ['VIP','VVIP','SVIP']，
+//       讓 ConfirmOrder demo 的 VIP 使用者也能看到「還差 $251 元獲得高階保溫袋」hint
 //
 // 之後如果再改 initialGiftRules 內容，記得 bump 版本就會自動同步
-// 內建規則 = 寫在 src/data/giftRules.js 的那 7 條 demo 預設規則
+// 內建規則 = 寫在 src/data/giftRules.js 的那 8 條 demo 預設規則
 // User 用後台「新增贈品」建出來的規則不在這集合內，永遠保留
 
 const GiftRulesContext = createContext(null)
