@@ -1,16 +1,24 @@
 // 產品內頁 demo（米餅 ProductId=75762）
 //
-// 目的：示範「買就送活動資訊」應該顯示在「出貨日期」與「規格選擇」之間
+// 目的：示範「買就送 / 滿額贈」活動資訊應該顯示在「出貨日期」與「規格選擇」之間
 // 範圍：版面只做到「腰帶（紅寶石奇異果 banner）」即可，下方商品敘述 / 評論不做
 // 資料來源：
-//   - 商品基本資料 → 直接寫死（沒有 76542 的 ProductDetail 假資料、不是 demo 重點）
-//   - 「買就送活動資訊」內文 → 從 GiftRulesContext 撈 TargetProductIds 包含 75762
-//     且狀態為「上架中」的規則，串接其 PopupText（後台輸入的「活動辦法」）
+//   - 商品基本資料 → 直接寫死（沒有 75762 的 ProductDetail 假資料、不是 demo 重點）
+//   - 「買就送活動資訊」內文 → 撈 TargetProductIds 包含本商品 + 上架中 BuyToGet 規則
+//   - 「滿額贈活動資訊」內文 → 撈 ProductionLine + TemperatureLayer 都符合本商品 +
+//     上架中 Threshold 規則（與 evaluateGifts 的 subtotal 範圍一致；買的商品要進得了
+//     這條規則的小計才有意義，否則秀了也誤導）
+//
+// 米餅在 production 是「常溫」，但這份 demo 為了同時示範「買就送 + 滿額贈」兩個區塊，
+// 把溫層配送顯示為「冷凍」（與 ConfirmOrder 購物車中的 米餅 一致），這樣 powder
+// `粥寶寶/冷凍/$2000` 滿額贈規則才會被匹配到。實作 fruit_web 時直接用真實的 ProductDetail
+// 資料即可，不會有這個問題。
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useGiftRules } from '../context/GiftRulesContext'
 import { GIFT_RULE_STATE } from '../data/giftRules'
+import { ProductCategoryEnum, TemperatureLayer } from '../data/fakeData'
 
 const ICON = 'https://fruitbox.blob.core.windows.net/pagematerials/product/item-detail/icon_babyfood.png'
 const KIWI_BANNER = 'https://greenboxcdn.azureedge.net/upload/Banner/202603190413111.png'
@@ -25,6 +33,11 @@ const PRODUCT_IMAGES = [
 
 const PRODUCT_ID = 75762
 const PRODUCT_NAME = '【限時免運】綜合米餅六入組'
+
+// demo：產線、溫層（用於匹配滿額贈規則的 ProductionLine + TemperatureLayer）
+// 真實 fruit_web 從 ProductDetail.ProductionLine + ProductDetail.TemperatureLayer 讀
+const PRODUCT_PRODUCTION_LINE = ProductCategoryEnum.粥寶寶專區
+const PRODUCT_TEMPERATURE = TemperatureLayer.冷凍   // demo 用冷凍（搭配 滿額贈/粥寶寶/冷凍 規則）
 
 // 線上頁的 sub-line 標題列（icon + 文字）
 function SubLineTitle({ children, style = {} }) {
@@ -61,6 +74,20 @@ export default function ProductDetail() {
     Array.isArray(r.TargetProductIds) &&
     r.TargetProductIds.includes(PRODUCT_ID)
   )
+
+  // ── 找出「上架中、產線+溫層都符合本商品」的滿額贈規則 ──
+  // 必須同時匹配 ProductionLine + TemperatureLayer，因為 evaluateGifts 計算小計時
+  // 是「同產線 + 同溫層」一起加總；產品溫層不符的話，買這個商品也不會貢獻到該規則
+  // 的門檻金額，秀活動資訊只會誤導
+  // 對應 fruit_web 未來的：CartGiftService.GetActiveThresholdRulesForProduct(productId)
+  const activeThresholdRules = rules.filter(r =>
+    r.RuleType === 'Threshold' &&
+    r.State === GIFT_RULE_STATE.上架中 &&
+    r.ProductionLine === PRODUCT_PRODUCTION_LINE &&
+    r.TemperatureLayer === PRODUCT_TEMPERATURE
+  )
+
+  const hasGiftSection = activeBuyToGetRules.length > 0 || activeThresholdRules.length > 0
 
   return (
     // 注意：外層的 .container 與 .sb-site-container 由 ProductLayout 提供，
@@ -135,41 +162,75 @@ export default function ProductDetail() {
               <BulletRow>5個月以上寶寶</BulletRow>
 
               <SubLineTitle style={{ marginTop: 18 }}>溫層配送</SubLineTitle>
-              <BulletRow>常溫</BulletRow>
+              {/* demo：原本 production 是「常溫」，這裡改成「冷凍」以便同時示範
+                  買就送（米餅指定）+ 滿額贈（粥寶寶/冷凍 滿2000）兩個區塊 */}
+              <BulletRow>冷凍</BulletRow>
 
               <SubLineTitle style={{ marginTop: 18 }}>出貨日期</SubLineTitle>
               <BulletRow color="#e66154">04/28 ( 二 )，預計隔天到貨(星期日不到貨)</BulletRow>
 
               {/* ════════════════════════════════════════════════════════════════
-                  買就送活動資訊（贈品系統 demo 重點）
+                  贈品活動資訊區塊（贈品系統 demo 重點）
 
-                  顯示條件：「本商品被某條上架中的買就送規則指定為觸發商品」才會出現
-                    亦即 GiftRules 表中存在 RuleType==='BuyToGet' 且
-                    TargetProductIds 包含當前 productId 的「上架中」規則。
-                    → 不是所有產品頁都會出現，只有被「指定為買就送觸發商品」的才會出現
+                  包含兩個子區塊，邏輯一致、只差匹配條件：
 
-                  位置：出貨日期下方、規格選擇上方
-                  格式：與「出貨日期」相同（SubLineTitle + BulletRow），無額外底色或框
-                  內容：把符合條件的規則的 PopupText（後台輸入的「活動辦法」）
-                        逐行展開為條列項目；多條規則就連續展開
-                  註：刻意不顯示贈品名稱（rule.ProductName）。一條規則可指定多個觸發
-                      商品、一個觸發商品也可被多條規則指定，若每條都掛贈品名版面會太長；
-                      後台已要求 PopupText 把活動辦法寫清楚
+                  一、買就送活動資訊
+                    顯示條件：本商品被某條上架中的買就送規則指定為觸發商品才會出現
+                      亦即 GiftRules 表中存在 RuleType==='BuyToGet' 且
+                      TargetProductIds 包含當前 productId 的「上架中」規則
+                    fruit_web 對應：GetActiveBuyToGetRulesForProduct(productId)
 
-                  fruit_web 對應：CartGiftService.GetActiveBuyToGetRulesForProduct(productId)
+                  二、滿額贈活動資訊
+                    顯示條件：本商品的「產線 + 溫層」與某條上架中滿額贈規則的
+                      ProductionLine + TemperatureLayer 都吻合才會出現
+                      （因為 evaluateGifts 的小計就是「同產線 + 同溫層」加總；
+                      溫層不符的話，買這商品也不會貢獻到該規則的門檻金額，秀活動
+                      資訊會誤導客人）
+                    fruit_web 對應：GetActiveThresholdRulesForProduct(productId)
+
+                  共同設計決定：
+                    - 不顯示贈品名稱（rule.ProductName）。一個觸發商品可能對多條
+                      規則，每條都掛贈品名版面會太長 — 後台已要求 PopupText 把活動
+                      辦法寫清楚
+                    - 多條規則合併展開：所有符合條件的規則 PopupText 接著條列即可，
+                      不分組標題
+                    - 上下加分隔線（pd-gift-section）讓區塊跟其他 sub-line 有區隔
+                    - 不是所有產品頁都會出現，沒有任何匹配規則時整個區塊不顯示
                   ════════════════════════════════════════════════════════════════ */}
-              {activeBuyToGetRules.length > 0 && (
-                <>
-                  <SubLineTitle style={{ marginTop: 18 }}>買就送活動資訊</SubLineTitle>
-                  {activeBuyToGetRules.flatMap(rule =>
-                    (rule.PopupText || '')
-                      .split('\n')
-                      .filter(Boolean)
-                      .map((line, idx) => (
-                        <BulletRow key={`${rule.Id}-${idx}`}>{line}</BulletRow>
-                      ))
+              {hasGiftSection && (
+                <div className="pd-gift-section">
+                  {activeBuyToGetRules.length > 0 && (
+                    <>
+                      <SubLineTitle style={{ marginTop: 0 }}>買就送活動資訊</SubLineTitle>
+                      {activeBuyToGetRules.flatMap(rule =>
+                        (rule.PopupText || '')
+                          .split('\n')
+                          .filter(Boolean)
+                          .map((line, idx) => (
+                            <BulletRow key={`buytoget-${rule.Id}-${idx}`}>{line}</BulletRow>
+                          ))
+                      )}
+                    </>
                   )}
-                </>
+
+                  {activeThresholdRules.length > 0 && (
+                    <>
+                      <SubLineTitle
+                        style={{ marginTop: activeBuyToGetRules.length > 0 ? 18 : 0 }}
+                      >
+                        滿額贈活動資訊
+                      </SubLineTitle>
+                      {activeThresholdRules.flatMap(rule =>
+                        (rule.PopupText || '')
+                          .split('\n')
+                          .filter(Boolean)
+                          .map((line, idx) => (
+                            <BulletRow key={`threshold-${rule.Id}-${idx}`}>{line}</BulletRow>
+                          ))
+                      )}
+                    </>
+                  )}
+                </div>
               )}
             </div>
 

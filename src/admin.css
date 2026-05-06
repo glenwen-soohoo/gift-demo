@@ -1085,6 +1085,21 @@
   clear: both;
 }
 
+/* 贈品活動資訊區塊（買就送 + 滿額贈共用一個容器）
+   上下加分隔線跟其他 sub-line 區隔；不加底色或框，視覺風格仍對齊 sub-line / BulletRow */
+.pd-gift-section {
+  margin-top: 22px;
+  padding: 18px 0;
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  clear: both;        /* 內部 sub-line / BulletRow 都是 col-xs-12 float，先 clear 防止跑到上方 floats 旁邊 */
+}
+.pd-gift-section::after {
+  content: '';
+  display: table;
+  clear: both;        /* 內部 floats 撐高 */
+}
+
 /* 規格選擇（對齊線上 inline style：padding 5px 2px、border-radius 2px）
    線上桌面是 col-xs-6（半寬），這裡用 max-width 約束 */
 .spec-frame {

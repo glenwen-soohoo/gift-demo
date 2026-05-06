@@ -130,7 +130,10 @@ export const initialCart = [
         GiftRuleId: null,
         IsGiftDeclined: false,
       },
-      // 綜合米餅六入組 × 2 — 用來觸發買就送；加上燉飯組合後也觸發滿額贈
+      // 綜合米餅六入組 × 1 — 用來觸發「買就送」（米餅 ≥ 1 件就送集點卡）
+      // 數量 1 + 燉飯 949 = 粥寶寶/冷凍小計 1849，落在「快達門檻提示」範圍 [1800, 2000)，
+      // 結帳頁會顯示「粥寶寶 還差 $151 元即可獲得贈品『保冷袋』」提示列
+      // （改 qty=2 → 小計 2749 直接觸發滿額贈，提示列就會消失）
       {
         uid: 'b-75762-180001',
         ProductId: 75762,
@@ -142,7 +145,7 @@ export const initialCart = [
         Pic: 'https://greenboxcdn.azureedge.net/upload/Album_3035/File/202604021019081.jpg',
         DeliveryTime: '2026/04/22 ~',
         Price: 900,
-        Quantity: 2,
+        Quantity: 1,
         MaxQty: 10,
         Type: ProductCategoryEnum.粥寶寶專區,
         TemperatureType: TemperatureLayer.冷凍,
