@@ -24,6 +24,7 @@ import { Link } from 'react-router-dom'
 import { useGiftRules } from '../context/GiftRulesContext'
 import { GIFT_RULE_STATE } from '../data/giftRules'
 import { ProductCategoryEnum, TemperatureLayer } from '../data/fakeData'
+import GiftInfoModal from '../components/GiftInfoModal'
 
 const ICON = 'https://fruitbox.blob.core.windows.net/pagematerials/product/item-detail/icon_babyfood.png'
 const KIWI_BANNER = 'https://greenboxcdn.azureedge.net/upload/Banner/202603190413111.png'
@@ -86,7 +87,9 @@ function BulletRow({ children, color, marker = '．', markerColor = '#ef8e8e' })
 
 // 把同類型多條規則的 PopupText 渲染出來，規則之間插一條輕量 sub-divider
 // 避免「兩條規則的條列文字直接連在一起、客人以為是同一個活動」的誤解
-function renderRulesWithSubDivider(rules, keyPrefix) {
+//
+// onViewGift(rule)：點「查看贈品」按鈕時呼叫，開啟贈品說明彈窗（含贈品圖片）
+function renderRulesWithSubDivider(rules, keyPrefix, onViewGift) {
   return rules.map((rule, ruleIdx) => {
     const lines = (rule.PopupText || '').split('\n').filter(Boolean)
     return (
@@ -95,6 +98,13 @@ function renderRulesWithSubDivider(rules, keyPrefix) {
         {lines.map((line, idx) => (
           <BulletRow key={`${keyPrefix}-${rule.Id}-${idx}`}>{line}</BulletRow>
         ))}
+        <button
+          type="button"
+          className={`pd-gift-view-btn ${rule.ProductionLine === ProductCategoryEnum.粥寶寶專區 ? 'pd-gift-view-btn--pink' : ''}`}
+          onClick={() => onViewGift(rule)}
+        >
+          查看贈品
+        </button>
       </div>
     )
   })
@@ -103,6 +113,19 @@ function renderRulesWithSubDivider(rules, keyPrefix) {
 export default function ProductDetail() {
   const { rules } = useGiftRules()
   const [activeImg, setActiveImg] = useState(0)
+
+  // 「查看贈品」彈窗：把規則的贈品資訊（含圖片）丟給 GiftInfoModal 顯示
+  // rule 用 RuleType（'Threshold'/'BuyToGet'），GiftInfoModal 讀 GiftType → 這裡轉名
+  const [modalGift, setModalGift] = useState(null)
+  const openGiftModal = (rule) => setModalGift({
+    GiftType: rule.RuleType,
+    DetailText: rule.DetailText,   // 彈窗顯示完整活動細則（產品頁直接條列用 PopupText 簡短版）
+    Pic: rule.Pic,
+    ProductName: rule.ProductName,
+    ProductSpec: rule.ProductSpec,
+    SpecSuffix: rule.SpecSuffix,
+    GiftQuantity: rule.GiftQuantity,
+  })
 
   // ── 找出「上架中、且 TargetProductIds 包含本商品」的買就送規則 ──
   // 對應 fruit_web 未來的：CartGiftService.GetActiveBuyToGetRulesForProduct(productId)
@@ -180,7 +203,7 @@ export default function ProductDetail() {
               </span>
             </div>
 
-            <div className="itemcontent col-xs-12 p-0" style={{ color: '#333', fontSize: 16, marginBottom: 0 }}>
+            <div className="itemcontent col-xs-12 p-0" style={{ color: '#333', fontSize: 16, marginBottom: 0 ,borderBottom: '1px solid #b3b3b1'}}>
               <SubLineTitle>商品規格</SubLineTitle>
               <BulletRow>約50±3克/包，香蕉、鳳梨、草莓米餅3口味共6包。</BulletRow>
 
@@ -218,7 +241,7 @@ export default function ProductDetail() {
                 <>
                   <GiftBannerTitle>買就送活動資訊</GiftBannerTitle>
                   <div className="pd-gift-bullets">
-                    {renderRulesWithSubDivider(activeBuyToGetRules, 'buytoget')}
+                    {renderRulesWithSubDivider(activeBuyToGetRules, 'buytoget', openGiftModal)}
                   </div>
                 </>
               )}
@@ -227,7 +250,7 @@ export default function ProductDetail() {
                 <>
                   <GiftBannerTitle>滿額贈活動資訊</GiftBannerTitle>
                   <div className="pd-gift-bullets">
-                    {renderRulesWithSubDivider(activeThresholdRules, 'threshold')}
+                    {renderRulesWithSubDivider(activeThresholdRules, 'threshold', openGiftModal)}
                   </div>
                 </>
               )}
@@ -298,6 +321,12 @@ export default function ProductDetail() {
         重點示範：<span className="hl">「買就送活動資訊」與「滿額贈活動資訊」放在「出貨日期」與「規格選擇」之間，標題用 banner 樣式</span>。
         若看不到贈品區塊，請到 <Link to="/admin/gifts">/admin/gifts</Link> 確認有上架中規則。
       </div>
+
+      <GiftInfoModal
+        open={!!modalGift}
+        giftItem={modalGift}
+        onClose={() => setModalGift(null)}
+      />
     </>
   )
 }

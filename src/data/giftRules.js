@@ -78,8 +78,11 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: false,
-    PopupText:
-      '粥寶寶專區消費滿 $2,000 元，即可獲得此贈品一份。\n限 VIP 等級（含）以上會員。\n每筆訂單限獲一份，數量有限，送完為止。',
+    // PopupText = 產品內頁「直接顯示」的簡短說明（只點出有什麼活動）
+    PopupText: '粥寶寶專區消費滿 $2,000 元即可獲贈，數量有限送完為止。',
+    // DetailText = 彈窗（產品內頁 + 訂單確認頁共用）顯示的完整活動細則
+    DetailText:
+      '粥寶寶專區單筆消費滿 $2,000 元，即可獲得「粥寶寶多功能保冷袋」一份。\n• 限 VIP 等級（含）以上會員。\n• 每筆訂單限獲一份。\n• 贈品數量有限，送完為止，恕不另行通知。\n• 圖片僅供參考，贈品款式以實物為準。',
     // Stock / IsListed → 改從 ProductDetail（productSpecs.js）讀寫；rule 本身不存
     MembershipLimits: ['VIP', 'VVIP', 'SVIP'],
     State: GIFT_RULE_STATE.上架中,
@@ -112,8 +115,9 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: true,
-    PopupText:
-      '購買【綜合米餅六入組】每 1 件（含）以上，即可獲得此贈品一份。\n限首購會員。\n可重複贈送：購買越多、集點卡送越多！',
+    PopupText: '購買【綜合米餅六入組】即送集點卡，買越多送越多！',
+    DetailText:
+      '購買【綜合米餅六入組】每 1 件（含）以上，即可獲得「粥寶寶集點趣｜集點卡」一張。\n• 限首購會員。\n• 可重複贈送：購買數量越多，集點卡張數越多。\n• 集點卡適用於米餅、肉鬆等指定商品兌換。\n• 贈品數量有限，送完為止。',
     MembershipLimits: ['FirstOrder'],
     State: GIFT_RULE_STATE.上架中,
     StartTime: null,
@@ -147,8 +151,9 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: false,
-    PopupText:
-      '粥寶寶專區消費滿 $3,000 元，即可獲得此高階限量保溫袋一份。\n限 VIP 等級（含）以上會員。\n每筆訂單限獲一份，數量有限，送完為止。',
+    PopupText: '粥寶寶專區消費滿 $3,000 元再送高階限量保溫袋。',
+    DetailText:
+      '粥寶寶專區單筆消費滿 $3,000 元，即可獲得「粥寶寶限量保溫袋（高階）」一份。\n• 限 VIP 等級（含）以上會員。\n• 每筆訂單限獲一份。\n• 數量有限，送完為止。\n• 與滿 $2,000 元贈品可同時獲得。',
     MembershipLimits: ['VIP', 'VVIP', 'SVIP'],
     State: GIFT_RULE_STATE.上架中,
     StartTime: null,
@@ -180,8 +185,9 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: false,
-    PopupText:
-      '購買【一歲以上 PLUS+ 閃亮升級燉飯組合】即可獲得此贈品一份。\n限 VIP 等級（含）以上會員。\n每筆訂單限獲一份。',
+    PopupText: '購買指定燉飯組合即送多功能保冷袋。',
+    DetailText:
+      '購買【一歲以上 PLUS+ 閃亮升級燉飯組合】，即可獲得「粥寶寶多功能保冷袋」一份。\n• 限 VIP 等級（含）以上會員。\n• 每筆訂單限獲一份。\n• 數量有限，送完為止。',
     MembershipLimits: ['VIP', 'VVIP', 'SVIP'],
     State: GIFT_RULE_STATE.上架中,
     StartTime: null,
@@ -215,8 +221,9 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: true,
-    PopupText:
-      '購買【綜合米餅六入組】每 1 件（含）以上，即可獲得此贈品一份。\n限首購會員。\n可重複贈送：買越多、集點卡送越多！',
+    PopupText: '購買【綜合米餅六入組】即送集點卡（常溫版）。',
+    DetailText:
+      '購買【綜合米餅六入組】每 1 件（含）以上，即可獲得集點卡一張。\n• 限首購會員。\n• 可重複贈送：買越多送越多。',
     MembershipLimits: ['FirstOrder'],
     State: GIFT_RULE_STATE.下架,    // 下架，避免前台與 137029 同時觸發（productSpecs.js 對應 spec.Display=false）
     StartTime: null,
@@ -248,8 +255,9 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: false,
-    PopupText:
-      '生鮮肉舖消費滿 $2,300 元，即可獲贈此折扣碼。\n結帳時於折扣碼欄位輸入「NIE250」可現折 $250。\n每筆訂單限使用一次。',
+    PopupText: '生鮮肉舖滿 $2,300 送現折 $250 折扣碼。',
+    DetailText:
+      '生鮮肉舖單筆消費滿 $2,300 元，即可獲贈折扣碼一組。\n• 結帳時於折扣碼欄位輸入「NIE250」可現折 $250。\n• 每筆訂單限使用一次。\n• 不得與其他折扣碼合併使用。',
     MembershipLimits: [],
     State: GIFT_RULE_STATE.上架中,
     StartTime: null,
@@ -282,6 +290,7 @@ export const initialGiftRules = [
     GiftQuantity: 1,
     Repeatable: false,
     PopupText: '',
+    DetailText: '',
     MembershipLimits: [],
     State: GIFT_RULE_STATE.草稿,    // 條件未設定前不能上架（productSpecs.js 對應 spec.Display=false）
     StartTime: null,
@@ -313,8 +322,9 @@ export const initialGiftRules = [
     TargetSpecIds: [],
     GiftQuantity: 1,
     Repeatable: false,
-    PopupText:
-      '生鮮肉舖消費滿 $2,200 元，即可獲贈此折扣碼。\n結帳時於折扣碼欄位輸入「ANV100」可現折 $250。\n每筆訂單限使用一次。',
+    PopupText: '生鮮肉舖滿 $2,200 送現折 $250 折扣碼。',
+    DetailText:
+      '生鮮肉舖單筆消費滿 $2,200 元，即可獲贈折扣碼一組。\n• 結帳時於折扣碼欄位輸入「ANV100」可現折 $250。\n• 每筆訂單限使用一次。',
     MembershipLimits: [],
     State: GIFT_RULE_STATE.下架,
     StartTime: null,

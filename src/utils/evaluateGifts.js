@@ -105,6 +105,7 @@ function evaluateThreshold(rule, cartItems, declinedIds) {
         ProductionLineName: getProductionLineName(rule.ProductionLine),
         GiftName: rule.ProductName,
         PopupText: rule.PopupText ?? '',
+        DetailText: rule.DetailText ?? '',
       },
     }
   }
@@ -155,6 +156,7 @@ function buildTriggeredItem(rule, multiplier, declinedIds) {
     Multiplier: multiplier,
     IsDeclined: declinedIds.has(rule.Id),
     PopupText: rule.PopupText ?? '',
+    DetailText: rule.DetailText ?? '',
   }
 }
 

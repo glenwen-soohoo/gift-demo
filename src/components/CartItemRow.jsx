@@ -120,7 +120,7 @@ function GiftRow({ giftItem, onToggleGift, giftModal, setGiftModal }) {
           <div className="col-xs-8 pd-descs">
             <div className="gift-tags">
               <span className={`gift-tag ${giftTypeClass}`}>{tagLabel}</span>
-              {giftItem.PopupText && (
+              {(giftItem.DetailText || giftItem.PopupText) && (
                 <button type="button" className="gift-info-btn" onClick={() => setGiftModal(true)}>
                   活動說明
                 </button>

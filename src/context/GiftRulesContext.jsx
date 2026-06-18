@@ -5,7 +5,7 @@ import { findSpecById } from '../data/productSpecs'
 
 const LS_KEY = 'gift-demo:giftRules'
 const LS_VERSION = 'gift-demo:giftRules:v'
-const CURRENT_VERSION = 11
+const CURRENT_VERSION = 13
 // v6 = 把 IsListed / Stock 從 GiftRule 拿掉；單一資料來源 = ProductDetail（productSpecs.js）
 // v7 = 內建規則（id 在 initialGiftRules 內的）每次升版都從 source code 強制刷新
 // v8 = 重新跑一次刷新 — 修復「v7 migration 跑時 source code 還是中間版本，內建規則
@@ -16,6 +16,9 @@ const CURRENT_VERSION = 11
 //       粥寶寶/冷凍滿額贈，配合產品內頁示範「1 買就送 + 2 滿額贈」三條規則並排
 // v11 = rule 163600 MembershipLimits 從 ['VVIP','SVIP'] 改成 ['VIP','VVIP','SVIP']，
 //       讓 ConfirmOrder demo 的 VIP 使用者也能看到「還差 $251 元獲得高階保溫袋」hint
+// v12 = 新增 DetailText 欄位（彈窗活動細則）：PopupText 改為產品頁直接顯示的簡短說明，
+//       DetailText 為產品內頁彈窗 + 訂單確認頁彈窗共用的完整活動細則。bump 版本讓內建規則刷新
+// v13 = DetailText 移除開頭「【滿額贈活動辦法】/【買就送活動辦法】」前綴（彈窗已有「活動辦法」標題，不重複）
 //
 // 之後如果再改 initialGiftRules 內容，記得 bump 版本就會自動同步
 // 內建規則 = 寫在 src/data/giftRules.js 的那 8 條 demo 預設規則
@@ -78,6 +81,7 @@ function migrateLegacyRule(old) {
     GiftQuantity: old.giftQuantity ?? old.GiftQuantity ?? 1,
     Repeatable: old.repeatable ?? old.Repeatable ?? false,
     PopupText: (old.popupText || old.PopupText || DEFAULT_POPUP_TEXTS[old.id ?? old.Id] || ''),
+    DetailText: (old.DetailText || old.detailText || ''),  // v12：彈窗活動細則（內建規則會在下方 builtIn 刷新階段取得 source 最新值）
     // v6：IsListed / Stock 不再放在 rule 上 → 不 carry
     MembershipLimits: (old.membershipLimit ?? old.MembershipLimits ?? []).map(m => membershipMap[m] ?? m),
     // State 還是 carry：規則 lifecycle 跟 ProductDetail.Display 是兩個概念

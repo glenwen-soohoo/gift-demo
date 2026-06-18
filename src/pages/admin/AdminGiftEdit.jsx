@@ -32,6 +32,7 @@ const EMPTY_RULE = {
   GiftQuantity: 1,
   Repeatable: false,
   PopupText: '',
+  DetailText: '',
   MembershipLimits: [],
   State: GIFT_RULE_STATE.上架中,
 }
@@ -373,15 +374,29 @@ export default function AdminGiftEdit() {
             </div>
 
             <div className="form-row">
-              <label>彈窗補充說明：</label>
+              <label>產品頁活動說明：</label>
               <textarea
                 className="form-input"
-                placeholder="請輸入會顯示在前台頁面的說明文字"
-                rows={3}
+                placeholder="顯示在產品內頁的簡短說明，讓客人知道有贈品活動（一兩句即可）"
+                rows={2}
                 value={form.PopupText}
                 onChange={e => update('PopupText', e.target.value)}
                 style={{ width: 360 }}
               />
+              <span className="hint">直接顯示在產品內頁的文字，簡短點出有什麼贈品活動。</span>
+            </div>
+
+            <div className="form-row">
+              <label>彈窗活動細則：</label>
+              <textarea
+                className="form-input"
+                placeholder="點「查看贈品 / 活動說明」彈窗會顯示的完整細則，可寫多行（限購等級、可重複、注意事項…）"
+                rows={5}
+                value={form.DetailText}
+                onChange={e => update('DetailText', e.target.value)}
+                style={{ width: 360 }}
+              />
+              <span className="hint">產品內頁彈窗與訂單確認頁彈窗共用，可寫較完整的活動細則。</span>
             </div>
 
             {isNew && (
